@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gameAPI } from '../../services/api';
 
 const GameSelect = () => {
+  const navigate = useNavigate();
   const [games, setGames] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,6 +25,26 @@ const GameSelect = () => {
   if (isLoading) {
     return <div className="loading">Dang tai danh sach game...</div>;
   }
+
+  // Xu ly choi game
+  const handlePlayGame = (slug) => {
+    const gameRoutes = {
+      'match-3': '/games/match3',
+      'memory': '/games/memory',
+      'free-draw': '/games/freedraw',
+      'snake': '/games/snake',
+      'caro-5': '/games/caro5',
+      'caro-4': '/games/caro4',
+      'tic-tac-toe': '/games/tictactoe',
+    };
+
+    const route = gameRoutes[slug];
+    if (route) {
+      navigate(route);
+    } else {
+      alert('Game nay dang duoc phat trien!');
+    }
+  };
 
   return (
     <div>
@@ -69,10 +91,7 @@ const GameSelect = () => {
             <button 
               className="btn btn-primary" 
               style={{ width: '100%' }}
-              onClick={() => {
-                // TODO: Navigate to game
-                alert(`Game ${game.name} se duoc mo. Tinh nang dang phat trien!`);
-              }}
+              onClick={() => handlePlayGame(game.slug)}
             >
               Choi ngay
             </button>
