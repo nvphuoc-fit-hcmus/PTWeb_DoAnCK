@@ -15,9 +15,13 @@ import Home from './pages/client/Home';
 import GameSelect from './pages/client/GameSelect';
 import Profile from './pages/client/Profile';
 
+// Pages - Games
+import { Match3Game, MemoryGame, FreeDrawGame } from './pages/games';
+
 // Pages - Admin
 import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
+import GameManagement from './pages/admin/GameManagement';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -51,6 +55,9 @@ function App() {
       <Route element={<ClientLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/games" element={<GameSelect />} />
+        <Route path="/games/match3" element={<Match3Game />} />
+        <Route path="/games/memory" element={<MemoryGame />} />
+        <Route path="/games/freedraw" element={<FreeDrawGame />} />
         <Route
           path="/profile"
           element={
@@ -72,6 +79,7 @@ function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="games" element={<GameManagement />} />
       </Route>
 
       {/* 404 */}
