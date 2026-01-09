@@ -54,7 +54,4 @@ npm install
 npm run dev
 ```
 
-## Tác giả
-- Sinh viên: [Tên sinh viên]
-- MSSV: [Mã số sinh viên]
-- Môn học: Phát triển ứng dụng Web
+
