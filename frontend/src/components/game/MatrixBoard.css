@@ -1,0 +1,133 @@
+/* MatrixBoard Styles - LED Matrix Effect */
+
+.matrix-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.matrix-grid {
+  border: 3px solid #333;
+  background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+}
+
+/* Cell cơ bản */
+.matrix-cell {
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: 1px solid #222;
+}
+
+/* Cell có màu (active) */
+.matrix-cell--active {
+  transform: scale(1.05);
+}
+
+/* Cell là con trỏ */
+.matrix-cell--cursor {
+  animation: cursor-blink 0.5s ease-in-out infinite alternate;
+  border: 2px solid #fff !important;
+  z-index: 10;
+}
+
+@keyframes cursor-blink {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Cell có hiệu ứng glow */
+.matrix-cell--glow {
+  animation: glow-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.3);
+  }
+}
+
+/* Thông tin debug */
+.matrix-info {
+  display: flex;
+  gap: 20px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .matrix-grid {
+    transform: scale(0.8);
+    transform-origin: center;
+  }
+}
+
+/* Theme variations */
+.matrix-board--dark {
+  --matrix-bg: #0a0a0a;
+  --matrix-border: #333;
+}
+
+.matrix-board--light {
+  --matrix-bg: #e0e0e0;
+  --matrix-border: #999;
+}
+
+/* Special effects for games */
+.matrix-cell--matched {
+  animation: matched-pop 0.3s ease-out forwards;
+}
+
+@keyframes matched-pop {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.matrix-cell--selected {
+  border: 2px solid #ffff00 !important;
+  animation: selected-pulse 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes selected-pulse {
+  0% {
+    box-shadow: 0 0 5px #ffff00;
+  }
+  100% {
+    box-shadow: 0 0 15px #ffff00;
+  }
+}
+
+.matrix-cell--hint {
+  animation: hint-flash 0.8s ease-in-out infinite;
+}
+
+@keyframes hint-flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
