@@ -1,0 +1,66 @@
+/* Memory Game Styles */
+
+.memory-game {
+  padding: 20px;
+  min-height: calc(100vh - 140px);
+}
+
+.memory-board .matrix-cell {
+  border-radius: 8px !important;
+  transition: all 0.3s ease;
+}
+
+/* Hiệu ứng lật thẻ */
+.memory-board .matrix-cell--active {
+  transform: rotateY(0deg) scale(1.05);
+}
+
+/* Thẻ úp */
+.memory-board .matrix-cell:not(.matrix-cell--active) {
+  background: linear-gradient(145deg, #3d3d3d, #2d2d2d) !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* Hiệu ứng khi matched */
+.memory-board .matrix-cell[style*="background-color: #1a1a1a"] {
+  opacity: 0.3;
+  transform: scale(0.9);
+}
+
+/* Override game stats for memory */
+.memory-game .game-stats {
+  flex-wrap: wrap;
+}
+
+.memory-game .stat {
+  min-width: 80px;
+}
+
+/* Thêm hiệu ứng cho thẻ */
+.memory-board .matrix-grid {
+  perspective: 1000px;
+}
+
+.memory-board .matrix-cell {
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease, background-color 0.3s ease;
+}
+
+/* Animation khi match */
+@keyframes match-celebrate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 30px currentColor;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.3;
+  }
+}
+
+.memory-board .matrix-cell--matched {
+  animation: match-celebrate 0.5s ease forwards;
+}
