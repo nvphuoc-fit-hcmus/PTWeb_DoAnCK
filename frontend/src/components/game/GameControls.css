@@ -1,0 +1,139 @@
+/* GameControls Styles */
+
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Button cơ bản */
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  padding: 8px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--bg-tertiary), var(--bg-secondary));
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+}
+
+.control-btn:active,
+.control-btn--pressed {
+  transform: translateY(2px) scale(0.95);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn--pressed .control-icon,
+.control-btn--pressed .control-label {
+  color: #000;
+}
+
+/* Icon */
+.control-icon {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* Label */
+.control-label {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Nut dac biet */
+.control-btn--enter {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+  border-color: var(--primary-color);
+}
+
+.control-btn--enter .control-icon,
+.control-btn--enter .control-label {
+  color: #000;
+}
+
+.control-btn--enter:hover {
+  box-shadow: 0 0 20px var(--primary-color);
+}
+
+.control-btn--hint {
+  background: linear-gradient(145deg, #ffd700, #ffb700);
+  border-color: #ffd700;
+}
+
+.control-btn--hint .control-icon,
+.control-btn--hint .control-label {
+  color: #000;
+}
+
+.control-btn--back {
+  background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+  border-color: #ff6b6b;
+}
+
+.control-btn--back .control-icon,
+.control-btn--back .control-label {
+  color: #fff;
+}
+
+/* Help text */
+.controls-help {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.controls-help p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .control-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .control-btn--enter {
+    width: 70px;
+    height: 70px;
+  }
+
+  .control-icon {
+    font-size: 1.25rem;
+  }
+}
