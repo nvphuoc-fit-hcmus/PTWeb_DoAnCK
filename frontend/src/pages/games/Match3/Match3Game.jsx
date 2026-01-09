@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MatrixBoard, GameControls } from '../../components/game';
-import { useGameController } from '../../hooks';
-import { useAuth } from '../../contexts/AuthContext';
-import { gameAPI } from '../../services/api';
+import { MatrixBoard, GameControls } from '../../../components/game';
+import { useGameController } from '../../../hooks';
+import { useAuth } from '../../../contexts/AuthContext';
+import { gameAPI } from '../../../services/api';
 import './Match3Game.css';
 
 // Cau hinh game
