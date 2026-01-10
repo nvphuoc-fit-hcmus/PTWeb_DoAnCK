@@ -1,21 +1,12 @@
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const jwt = require("jsonwebtoken");
+const { User } = require("../models");
 
-/**
- * Tạo JWT token
- */
 const generateToken = (userId) => {
-  return jwt.sign(
-    { userId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-  );
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  });
 };
 
-/**
- * Đăng ký tài khoản mới
- * POST /api/auth/register
- */
 const register = async (req, res) => {
   try {
     const { username, email, password, display_name } = req.body;
@@ -25,7 +16,7 @@ const register = async (req, res) => {
     if (existingUsername) {
       return res.status(400).json({
         success: false,
-        message: 'Username da ton tai',
+        message: "Username đã được sử dụng",
       });
     }
 
@@ -34,7 +25,7 @@ const register = async (req, res) => {
     if (existingEmail) {
       return res.status(400).json({
         success: false,
-        message: 'Email da duoc su dung',
+        message: "Email đã được sử dụng",
       });
     }
 
@@ -51,25 +42,21 @@ const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Dang ky thanh cong',
+      message: "Đăng ký thành công",
       data: {
         user,
         token,
       },
     });
   } catch (error) {
-    console.error('Register error:', error);
+    console.error("Register error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong khi dang ky',
+      message: "Lỗi hệ thống khi đăng ký",
     });
   }
 };
 
-/**
- * Đăng nhập
- * POST /api/auth/login
- */
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -83,16 +70,19 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Thong tin dang nhap khong chinh xac',
+        message: "Thông tin đăng nhập không chính xác",
       });
     }
 
     // Verify password
-    const isValidPassword = await User.verifyPassword(password, user.password_hash);
+    const isValidPassword = await User.verifyPassword(
+      password,
+      user.password_hash
+    );
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Thong tin dang nhap khong chinh xac',
+        message: "Thông tin đăng nhập không chính xác",
       });
     }
 
@@ -100,7 +90,7 @@ const login = async (req, res) => {
     if (!user.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Tai khoan da bi khoa',
+        message: "Tài khoản đã bị vô hiệu hóa",
       });
     }
 
@@ -112,7 +102,7 @@ const login = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Dang nhap thanh cong',
+      message: "Đăng nhập thành công",
       data: {
         user: {
           id: user.id,
@@ -126,26 +116,22 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong khi dang nhap',
+      message: "Lỗi hệ thống khi đăng nhập",
     });
   }
 };
 
-/**
- * Lấy thông tin user hiện tại
- * GET /api/auth/me
- */
 const getMe = async (req, res) => {
   try {
     const profile = await User.getProfile(req.user.id);
-    
+
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: 'Khong tim thay nguoi dung',
+        message: "Không tìm thấy người dùng",
       });
     }
 
@@ -154,48 +140,47 @@ const getMe = async (req, res) => {
       data: profile,
     });
   } catch (error) {
-    console.error('GetMe error:', error);
+    console.error("GetMe error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Đổi mật khẩu
- * PUT /api/auth/password
- */
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
+
     const user = await User.findById(req.user.id);
-    
+
     // Verify current password
-    const isValid = await User.verifyPassword(currentPassword, user.password_hash);
+    const isValid = await User.verifyPassword(
+      currentPassword,
+      user.password_hash
+    );
     if (!isValid) {
       return res.status(400).json({
         success: false,
-        message: 'Mat khau hien tai khong chinh xac',
+        message: "Mật khẩu hiện tại không chính xác",
       });
     }
 
     // Hash new password
-    const bcrypt = require('bcryptjs');
+    const bcrypt = require("bcryptjs");
     const password_hash = await bcrypt.hash(newPassword, 10);
-    
+
     await User.update(req.user.id, { password_hash });
 
     res.json({
       success: true,
-      message: 'Doi mat khau thanh cong',
+      message: "Đổi mật khẩu thành công",
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    console.error("Change password error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };

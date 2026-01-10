@@ -1,33 +1,33 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     const result = await login(formData.username, formData.password);
 
     if (result.success) {
-      navigate('/');
+      navigate("/");
     } else {
       setError(result.message);
     }
@@ -38,8 +38,8 @@ const Login = () => {
   return (
     <div className="auth-card">
       <div className="auth-header">
-        <h1 className="auth-title">🎮 Dang Nhap</h1>
-        <p className="auth-subtitle">Chao mung ban quay tro lai!</p>
+        <h1 className="auth-title">🎮 Đăng Nhập</h1>
+        <p className="auth-subtitle">Chào mừng bạn quay trở lại!</p>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -47,14 +47,14 @@ const Login = () => {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="username">
-            Ten dang nhap hoac Email
+            Tên đăng nhập hoặc Email
           </label>
           <input
             type="text"
             id="username"
             name="username"
             className="form-input"
-            placeholder="Nhap username hoac email"
+            placeholder="Nhập username hoặc email"
             value={formData.username}
             onChange={handleChange}
             required
@@ -64,14 +64,14 @@ const Login = () => {
 
         <div className="form-group">
           <label className="form-label" htmlFor="password">
-            Mat khau
+            Mật khẩu
           </label>
           <input
             type="password"
             id="password"
             name="password"
             className="form-input"
-            placeholder="Nhap mat khau"
+            placeholder="Nhập mật khẩu"
             value={formData.password}
             onChange={handleChange}
             required
@@ -81,28 +81,28 @@ const Login = () => {
         <button
           type="submit"
           className="btn btn-primary"
-          style={{ width: '100%', marginTop: '10px' }}
+          style={{ width: "100%", marginTop: "10px" }}
           disabled={isLoading}
         >
-          {isLoading ? 'Dang xu ly...' : 'Dang Nhap'}
+          {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
         </button>
       </form>
 
       <div className="auth-footer">
-        Chua co tai khoan?{' '}
-        <Link to="/register">Dang ky ngay</Link>
+        Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
       </div>
 
-      {/* Demo accounts info */}
-      <div style={{ 
-        marginTop: '20px', 
-        padding: '15px', 
-        backgroundColor: 'var(--bg-tertiary)', 
-        borderRadius: '8px',
-        fontSize: '0.875rem',
-        color: 'var(--text-secondary)'
-      }}>
-        <strong>Tai khoan demo:</strong>
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "15px",
+          backgroundColor: "var(--bg-tertiary)",
+          borderRadius: "8px",
+          fontSize: "0.875rem",
+          color: "var(--text-secondary)",
+        }}
+      >
+        <strong>Tài khoản demo:</strong>
         <br />
         Admin: admin / 123456
         <br />

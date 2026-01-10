@@ -1,17 +1,13 @@
-const { Message, Friendship } = require('../models');
+const { Message, Friendship } = require("../models");
 
-/**
- * Gửi tin nhắn
- * POST /api/messages
- */
 const sendMessage = async (req, res) => {
   try {
     const { receiver_id, content } = req.body;
-    
+
     if (receiver_id === req.user.id) {
       return res.status(400).json({
         success: false,
-        message: 'Khong the gui tin nhan cho chinh minh',
+        message: "Không thể gửi tin nhắn cho chính mình",
       });
     }
 
@@ -19,27 +15,23 @@ const sendMessage = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Gui tin nhan thanh cong',
+      message: "Gửi tin nhắn thành công",
       data: message,
     });
   } catch (error) {
-    console.error('Send message error:', error);
+    console.error("Send message error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Lấy hội thoại với một user
- * GET /api/messages/:userId
- */
 const getConversation = async (req, res) => {
   try {
     const { userId } = req.params;
     const { limit = 50, before } = req.query;
-    
+
     const messages = await Message.getConversation(req.user.id, userId, {
       limit: parseInt(limit),
       before,
@@ -53,18 +45,14 @@ const getConversation = async (req, res) => {
       data: messages,
     });
   } catch (error) {
-    console.error('Get conversation error:', error);
+    console.error("Get conversation error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Lấy danh sách tất cả hội thoại
- * GET /api/messages
- */
 const getConversations = async (req, res) => {
   try {
     const conversations = await Message.getConversations(req.user.id);
@@ -74,18 +62,14 @@ const getConversations = async (req, res) => {
       data: conversations,
     });
   } catch (error) {
-    console.error('Get conversations error:', error);
+    console.error("Get conversations error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Lấy số tin nhắn chưa đọc
- * GET /api/messages/unread/count
- */
 const getUnreadCount = async (req, res) => {
   try {
     const count = await Message.getUnreadCount(req.user.id);
@@ -95,40 +79,36 @@ const getUnreadCount = async (req, res) => {
       data: { count },
     });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    console.error("Get unread count error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Xóa tin nhắn
- * DELETE /api/messages/:id
- */
 const deleteMessage = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const deleted = await Message.delete(id, req.user.id);
-    
+
     if (!deleted) {
       return res.status(404).json({
         success: false,
-        message: 'Khong tim thay tin nhan hoac khong co quyen xoa',
+        message: "Không tìm thấy tin nhắn hoặc không có quyền xóa",
       });
     }
 
     res.json({
       success: true,
-      message: 'Da xoa tin nhan',
+      message: "Đã xóa tin nhắn",
     });
   } catch (error) {
-    console.error('Delete message error:', error);
+    console.error("Delete message error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };

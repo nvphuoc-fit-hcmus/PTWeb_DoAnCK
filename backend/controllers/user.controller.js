@@ -1,18 +1,14 @@
-const { User } = require('../models');
+const { User } = require("../models");
 
-/**
- * Lấy profile user theo ID
- * GET /api/users/:id
- */
 const getProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const profile = await User.getProfile(id);
-    
+
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: 'Khong tim thay nguoi dung',
+        message: "Không tìm thấy người dùng",
       });
     }
 
@@ -21,22 +17,18 @@ const getProfile = async (req, res) => {
       data: profile,
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    console.error("Get profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Cập nhật profile
- * PUT /api/users/profile
- */
 const updateProfile = async (req, res) => {
   try {
     const { display_name, bio, avatar_config } = req.body;
-    
+
     const updateData = {};
     if (display_name !== undefined) updateData.display_name = display_name;
     if (bio !== undefined) updateData.bio = bio;
@@ -46,26 +38,22 @@ const updateProfile = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Cap nhat profile thanh cong',
+      message: "Cập nhật profile thành công",
       data: user,
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };
 
-/**
- * Tìm kiếm users
- * GET /api/users/search?q=keyword
- */
 const searchUsers = async (req, res) => {
   try {
     const { q, page = 1, limit = 20 } = req.query;
-    
+
     const result = await User.findAll({
       search: q,
       page: parseInt(page),
@@ -77,10 +65,10 @@ const searchUsers = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Search users error:', error);
+    console.error("Search users error:", error);
     res.status(500).json({
       success: false,
-      message: 'Loi he thong',
+      message: "Lỗi hệ thống",
     });
   }
 };

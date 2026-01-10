@@ -1,51 +1,51 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
-  
+
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    display_name: '',
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    display_name: "",
   });
   const [errors, setErrors] = useState({});
-  const [globalError, setGlobalError] = useState('');
+  const [globalError, setGlobalError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for this field
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-    setGlobalError('');
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setGlobalError("");
   };
 
   const validate = () => {
     const newErrors = {};
 
     if (formData.username.length < 3) {
-      newErrors.username = 'Username phai co it nhat 3 ky tu';
+      newErrors.username = "Username phải có ít nhất 3 ký tự";
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username chi duoc chua chu cai, so va dau gach duoi';
+      newErrors.username =
+        "Username chỉ được chứa chữ cái, số và dấu gạch dưới";
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email khong hop le';
+      newErrors.email = "Email không hợp lệ";
     }
 
     if (formData.password.length < 6) {
-      newErrors.password = 'Mat khau phai co it nhat 6 ky tu';
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Mat khau xac nhan khong khop';
+      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
     }
 
     setErrors(newErrors);
@@ -54,11 +54,11 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
 
     setIsLoading(true);
-    setGlobalError('');
+    setGlobalError("");
 
     const result = await register({
       username: formData.username,
@@ -68,7 +68,7 @@ const Register = () => {
     });
 
     if (result.success) {
-      navigate('/');
+      navigate("/");
     } else {
       if (result.errors) {
         const newErrors = {};
@@ -87,8 +87,8 @@ const Register = () => {
   return (
     <div className="auth-card">
       <div className="auth-header">
-        <h1 className="auth-title">🎮 Dang Ky</h1>
-        <p className="auth-subtitle">Tao tai khoan de bat dau choi!</p>
+        <h1 className="auth-title">🎮 Đăng Ký</h1>
+        <p className="auth-subtitle">Tạo tài khoản để bắt đầu chơi!</p>
       </div>
 
       {globalError && <div className="alert alert-error">{globalError}</div>}
@@ -96,20 +96,22 @@ const Register = () => {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="username">
-            Ten dang nhap *
+            Tên đăng nhập *
           </label>
           <input
             type="text"
             id="username"
             name="username"
             className="form-input"
-            placeholder="Nhap username (vd: player123)"
+            placeholder="Nhập username (vd: player123)"
             value={formData.username}
             onChange={handleChange}
             required
             autoFocus
           />
-          {errors.username && <div className="form-error">{errors.username}</div>}
+          {errors.username && (
+            <div className="form-error">{errors.username}</div>
+          )}
         </div>
 
         <div className="form-group">
@@ -121,7 +123,7 @@ const Register = () => {
             id="email"
             name="email"
             className="form-input"
-            placeholder="Nhap email"
+            placeholder="Nhập email"
             value={formData.email}
             onChange={handleChange}
             required
@@ -131,14 +133,14 @@ const Register = () => {
 
         <div className="form-group">
           <label className="form-label" htmlFor="display_name">
-            Ten hien thi
+            Tên hiển thị
           </label>
           <input
             type="text"
             id="display_name"
             name="display_name"
             className="form-input"
-            placeholder="Ten se hien thi trong game (tuy chon)"
+            placeholder="Tên sẽ hiển thị trong game (tùy chọn)"
             value={formData.display_name}
             onChange={handleChange}
           />
@@ -146,31 +148,33 @@ const Register = () => {
 
         <div className="form-group">
           <label className="form-label" htmlFor="password">
-            Mat khau *
+            Mật khẩu *
           </label>
           <input
             type="password"
             id="password"
             name="password"
             className="form-input"
-            placeholder="Nhap mat khau (it nhat 6 ky tu)"
+            placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
             value={formData.password}
             onChange={handleChange}
             required
           />
-          {errors.password && <div className="form-error">{errors.password}</div>}
+          {errors.password && (
+            <div className="form-error">{errors.password}</div>
+          )}
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="confirmPassword">
-            Xac nhan mat khau *
+            Xác nhận mật khẩu *
           </label>
           <input
             type="password"
             id="confirmPassword"
             name="confirmPassword"
             className="form-input"
-            placeholder="Nhap lai mat khau"
+            placeholder="Nhập lại mật khẩu"
             value={formData.confirmPassword}
             onChange={handleChange}
             required
@@ -183,16 +187,15 @@ const Register = () => {
         <button
           type="submit"
           className="btn btn-primary"
-          style={{ width: '100%', marginTop: '10px' }}
+          style={{ width: "100%", marginTop: "10px" }}
           disabled={isLoading}
         >
-          {isLoading ? 'Dang xu ly...' : 'Dang Ky'}
+          {isLoading ? "Đang xử lý..." : "Đăng Ký"}
         </button>
       </form>
 
       <div className="auth-footer">
-        Da co tai khoan?{' '}
-        <Link to="/login">Dang nhap</Link>
+        Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
       </div>
     </div>
   );

@@ -1,27 +1,29 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 
 // Layouts
-import ClientLayout from './layouts/ClientLayout';
-import AdminLayout from './layouts/AdminLayout';
-import AuthLayout from './layouts/AuthLayout';
+import ClientLayout from "./layouts/ClientLayout";
+import AdminLayout from "./layouts/AdminLayout";
+import AuthLayout from "./layouts/AuthLayout";
 
 // Pages - Auth
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 
 // Pages - Client
-import Home from './pages/client/Home';
-import GameSelect from './pages/client/GameSelect';
-import Profile from './pages/client/Profile';
+import Home from "./pages/client/Home";
+import GameSelect from "./pages/client/GameSelect";
+import Profile from "./pages/client/Profile";
+import FriendManagement from "./pages/client/FriendManagement";
+import MessageManagement from "./pages/client/MessageManagement";
 
 // Pages - Games
-import { Match3Game, MemoryGame, FreeDrawGame } from './pages/games';
+import { Match3Game, MemoryGame, FreeDrawGame } from "./pages/games";
 
 // Pages - Admin
-import Dashboard from './pages/admin/Dashboard';
-import UserManagement from './pages/admin/UserManagement';
-import GameManagement from './pages/admin/GameManagement';
+import Dashboard from "./pages/admin/Dashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import GameManagement from "./pages/admin/GameManagement";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -35,7 +37,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (requireAdmin && user.role !== 'admin') {
+  if (requireAdmin && user.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
@@ -45,13 +47,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 function App() {
   return (
     <Routes>
-      {/* Auth Routes */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/* Client Routes */}
       <Route element={<ClientLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/games" element={<GameSelect />} />
@@ -66,9 +66,24 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <FriendManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <MessageManagement />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
-      {/* Admin Routes */}
       <Route
         path="/admin"
         element={
@@ -82,7 +97,6 @@ function App() {
         <Route path="games" element={<GameManagement />} />
       </Route>
 
-      {/* 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

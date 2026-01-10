@@ -1,42 +1,37 @@
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const jwt = require("jsonwebtoken");
+const { User } = require("../models");
 
-/**
- * Middleware xác thực JWT token
- */
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
-        message: 'Token xac thuc khong duoc cung cap',
+        message: "Token xác thực bị thiếu hoặc không hợp lệ",
       });
     }
 
-    const token = authHeader.split(' ')[1];
-    
+    const token = authHeader.split(" ")[1];
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Get user from database
+
     const user = await User.findById(decoded.userId);
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Nguoi dung khong ton tai',
+        message: "Người dùng không tồn tại",
       });
     }
 
     if (!user.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Tai khoan da bi khoa',
+        message: "Tài khoản đã bị khóa",
       });
     }
 
-    // Attach user to request
     req.user = {
       id: user.id,
       username: user.username,
@@ -47,56 +42,50 @@ const authenticate = async (req, res, next) => {
 
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
-        message: 'Token da het han',
-      });
-    }
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token khong hop le',
+        message: "Token đã hết hạn",
       });
     }
 
-    console.error('Auth middleware error:', error);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token không hợp lệ",
+      });
+    }
+
+    console.error("Auth middleware error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Loi xac thuc',
+      message: "Lỗi xác thực",
     });
   }
 };
 
-/**
- * Middleware kiểm tra quyền Admin
- */
 const requireAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== "admin") {
     return res.status(403).json({
       success: false,
-      message: 'Khong co quyen truy cap. Yeu cau quyen Admin.',
+      message: "Không có quyền truy cập. Yêu cầu quyền Admin.",
     });
   }
   next();
 };
 
-/**
- * Optional authentication - không bắt buộc đăng nhập
- */
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return next();
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
-    
+
     if (user && user.is_active) {
       req.user = {
         id: user.id,
@@ -109,7 +98,6 @@ const optionalAuth = async (req, res, next) => {
 
     next();
   } catch {
-    // Token invalid but continue without auth
     next();
   }
 };

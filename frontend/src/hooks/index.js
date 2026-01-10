@@ -1,2 +1,1 @@
-// Hooks exports
-export { default as useGameController } from './useGameController';
+export { default as useGameController } from "./useGameController";
