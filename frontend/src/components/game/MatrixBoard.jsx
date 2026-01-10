@@ -30,17 +30,15 @@ const MatrixBoard = memo(({
     display: 'grid',
     gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
     gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
-    gap: '2px',
-    padding: '10px',
-    backgroundColor: '#111',
-    borderRadius: '8px',
-    boxShadow: '0 0 20px rgba(0, 255, 0, 0.2)',
+    gap: '3px',
+    padding: '12px',
+    borderRadius: '12px',
   };
 
   // Render moi cell
   const renderCell = (color, rowIndex, colIndex) => {
     const isCursor = showCursor && cursor && cursor.x === colIndex && cursor.y === rowIndex;
-    const hasColor = color && color !== 'transparent' && color !== '#000000';
+    const hasColor = color && color !== 'transparent' && color !== '#000000' && color !== '#1a1a1a';
 
     const cellClasses = classnames('matrix-cell', {
       'matrix-cell--active': hasColor,
@@ -51,10 +49,10 @@ const MatrixBoard = memo(({
     const cellStyle = {
       width: `${cellSize}px`,
       height: `${cellSize}px`,
-      backgroundColor: hasColor ? color : '#1a1a1a',
-      boxShadow: glowEffect && hasColor 
-        ? `0 0 ${cellSize / 2}px ${color}, inset 0 0 ${cellSize / 4}px rgba(255,255,255,0.3)` 
-        : 'none',
+      backgroundColor: hasColor ? color : undefined,
+      boxShadow: hasColor 
+        ? `0 0 ${cellSize / 3}px ${color}88, inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.2)` 
+        : undefined,
     };
 
     return (
