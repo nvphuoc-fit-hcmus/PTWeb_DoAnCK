@@ -179,7 +179,6 @@ const GameManagement = () => {
                 </div>
               )}
 
-              {/* Actions */}
               <div style={{ marginTop: "15px", display: "flex", gap: "10px" }}>
                 <button
                   className="btn btn-secondary"

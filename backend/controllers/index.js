@@ -5,6 +5,7 @@ const friendController = require("./friend.controller");
 const messageController = require("./message.controller");
 const achievementController = require("./achievement.controller");
 const adminController = require("./admin.controller");
+const gameReviewController = require("./gameReview.controller");
 
 module.exports = {
   authController,
@@ -14,4 +15,5 @@ module.exports = {
   messageController,
   achievementController,
   adminController,
+  gameReviewController,
 };

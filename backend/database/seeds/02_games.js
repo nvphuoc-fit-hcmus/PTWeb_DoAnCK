@@ -6,7 +6,7 @@ exports.seed = async function (knex) {
       id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
       name: "Caro 5",
       slug: "caro-5",
-      description: "Game Caro truyền thống- Xêp 5 quân liên tiếp để thắng",
+      description: "Game Caro truyền thống- Xếp 5 quân liên tiếp để thắng",
       config: JSON.stringify({
         boardSize: { rows: 15, cols: 15 },
         winCondition: 5,
@@ -90,7 +90,7 @@ exports.seed = async function (knex) {
       id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
       name: "Memory",
       slug: "memory",
-      description: "Có trí nhớ - Lật và ghép cặp thẻ giống nhau",
+      description: "Cờ trí nhớ - Lật và ghép cặp thẻ giống nhau",
       config: JSON.stringify({
         boardSize: { rows: 4, cols: 4 },
         colors: [

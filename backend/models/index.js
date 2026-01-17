@@ -5,6 +5,7 @@ const Friendship = require("./friendship.model");
 const Message = require("./message.model");
 const Achievement = require("./achievement.model");
 const HighScore = require("./highScore.model");
+const GameReview = require("./gameReview.model");
 
 module.exports = {
   User,
@@ -14,4 +15,5 @@ module.exports = {
   Message,
   Achievement,
   HighScore,
+  GameReview,
 };

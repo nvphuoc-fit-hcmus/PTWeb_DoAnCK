@@ -1,0 +1,161 @@
+
+.game-instructions {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.instructions-toggle {
+  width: 100%;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(0, 180, 219, 0.1), rgba(0, 200, 200, 0.1));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.instructions-toggle:hover {
+  background: linear-gradient(135deg, rgba(0, 180, 219, 0.2), rgba(0, 200, 200, 0.2));
+}
+
+.instructions-toggle .icon {
+  font-size: 1.5rem;
+}
+
+.instructions-toggle .title {
+  flex: 1;
+  text-align: left;
+}
+
+.instructions-toggle .arrow {
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.instructions-content {
+  padding: 20px;
+  background: var(--bg-primary);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.instructions-section {
+  margin-bottom: 20px;
+}
+
+.instructions-section:last-child {
+  margin-bottom: 0;
+}
+
+.instructions-section h4 {
+  color: var(--accent-color);
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rules-list,
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rules-list li,
+.tips-list li {
+  background: var(--bg-secondary);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  border-left: 4px solid var(--accent-color);
+  line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.rules-list li:hover,
+.tips-list li:hover {
+  background: linear-gradient(90deg, rgba(0, 180, 219, 0.1), transparent);
+  transform: translateX(4px);
+}
+
+.rules-list li:last-child,
+.tips-list li:last-child {
+  margin-bottom: 0;
+}
+
+.rules-list li::before {
+  content: "✓ ";
+  color: var(--accent-color);
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.tips-list li::before {
+  content: "→ ";
+  color: var(--accent-color);
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .instructions-toggle {
+    padding: 14px 16px;
+    font-size: 1rem;
+  }
+
+  .instructions-toggle .icon {
+    font-size: 1.3rem;
+  }
+
+  .instructions-content {
+    padding: 16px;
+  }
+
+  .rules-list li,
+  .tips-list li {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .instructions-toggle {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .instructions-toggle .icon {
+    font-size: 1.2rem;
+  }
+
+  .instructions-section h4 {
+    font-size: 1rem;
+  }
+
+  .rules-list li,
+  .tips-list li {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+}

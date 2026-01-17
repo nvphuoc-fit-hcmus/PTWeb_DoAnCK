@@ -70,6 +70,15 @@ export const gameAPI = {
     }),
   getRankings: (gameId, type = "global") =>
     api.get(`/games/rankings/${gameId}`, { params: { type } }),
+  saveHighScore: (slug, score) =>
+    api.post("/games/high-score", { game_slug: slug, score }),
+  getGameReviews: (gameId) => api.get(`/games/${gameId}/reviews`),
+  getGameRatingStats: (gameId) => api.get(`/games/${gameId}/rating-stats`),
+  getRatingDistribution: (gameId) =>
+    api.get(`/games/${gameId}/rating-distribution`),
+  submitReview: (gameId, rating, comment) =>
+    api.post(`/games/${gameId}/reviews`, { rating, comment }),
+  deleteReview: (reviewId) => api.delete(`/games/reviews/${reviewId}`),
 };
 
 export const friendAPI = {

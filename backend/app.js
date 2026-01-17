@@ -11,6 +11,7 @@ const friendRoutes = require("./routes/friend.routes");
 const messageRoutes = require("./routes/message.routes");
 const achievementRoutes = require("./routes/achievement.routes");
 const adminRoutes = require("./routes/admin.routes");
+const gameReviewRoutes = require("./routes/gameReview.routes");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/games", gameRoutes);
+app.use("/api/games", gameReviewRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/achievements", achievementRoutes);

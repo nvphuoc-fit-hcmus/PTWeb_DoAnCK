@@ -18,7 +18,15 @@ import FriendManagement from "./pages/client/FriendManagement";
 import MessageManagement from "./pages/client/MessageManagement";
 
 // Pages - Games
-import { Match3Game, MemoryGame, FreeDrawGame } from "./pages/games";
+import {
+  Match3Game,
+  MemoryGame,
+  FreeDrawGame,
+  Caro5Game,
+  Caro4Game,
+  TicTacToeGame,
+  SnakeGame,
+} from "./pages/games";
 
 // Pages - Admin
 import Dashboard from "./pages/admin/Dashboard";
@@ -58,6 +66,10 @@ function App() {
         <Route path="/games/match3" element={<Match3Game />} />
         <Route path="/games/memory" element={<MemoryGame />} />
         <Route path="/games/freedraw" element={<FreeDrawGame />} />
+        <Route path="/games/caro5" element={<Caro5Game />} />
+        <Route path="/games/caro4" element={<Caro4Game />} />
+        <Route path="/games/tictactoe" element={<TicTacToeGame />} />
+        <Route path="/games/snake" element={<SnakeGame />} />
         <Route
           path="/profile"
           element={
