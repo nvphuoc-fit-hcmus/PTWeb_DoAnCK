@@ -55,11 +55,12 @@ const getConversation = async (req, res) => {
 
 const getConversations = async (req, res) => {
   try {
-    const conversations = await Message.getConversations(req.user.id);
+    const { page = 1, limit = 20 } = req.query;
+    const conversations = await Message.getConversations(req.user.id, page, limit);
 
     res.json({
       success: true,
-      data: conversations,
+      ...conversations,
     });
   } catch (error) {
     console.error("Get conversations error:", error);
