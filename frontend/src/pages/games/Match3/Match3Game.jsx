@@ -9,13 +9,14 @@ import './Match3Game.css';
 // Cau hinh game
 const GRID_SIZE = 8; // 8x8
 const COLORS = [
-  '#FF6B6B', // Do
-  '#4ECDC4', // Xanh ngoc
-  '#FFE66D', // Vang
-  '#95E1D3', // Xanh la nhat
-  '#DDA0DD', // Tim nhat
-  '#FF9F43', // Cam
+  '#FF4757', // Do tuoi (Red)
+  '#1E90FF', // Xanh duong (Blue)
+  '#FFD700', // Vang nang (Gold)
+  '#2ECC71', // Xanh la (Green)
+  '#9B59B6', // Tim (Purple)
+  '#FF6348', // Cam (Orange)
 ];
+const TARGET_SCORE = 1000; // Diem muc tieu de thang
 
 // Tao mau ngau nhien
 const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -170,9 +171,11 @@ const Match3Game = () => {
   const [selectedCell, setSelectedCell] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [isWin, setIsWin] = useState(false);
   const [hint, setHint] = useState(null);
   const [combo, setCombo] = useState(0);
   const [showCombo, setShowCombo] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -322,10 +325,23 @@ const Match3Game = () => {
     }
   };
 
-  // Kiem tra game over
+  // Kiem tra game over hoac win
   useEffect(() => {
-    if (moves <= 0 && !isAnimating) {
+    if (score >= TARGET_SCORE && !isAnimating) {
+      // THANG!
       setGameOver(true);
+      setIsWin(true);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      // Luu diem
+      if (user) {
+        saveScore();
+      }
+    } else if (moves <= 0 && !isAnimating) {
+      // HET LUOT
+      setGameOver(true);
+      setIsWin(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -334,7 +350,7 @@ const Match3Game = () => {
         saveScore();
       }
     }
-  }, [moves, isAnimating]);
+  }, [moves, score, isAnimating]);
 
   // Luu diem
   const saveScore = async () => {
@@ -357,6 +373,7 @@ const Match3Game = () => {
     setMoves(30);
     setSelectedCell(null);
     setGameOver(false);
+    setIsWin(false);
     setTimeElapsed(0);
     setHint(null);
     setCombo(0);
@@ -391,7 +408,7 @@ const Match3Game = () => {
         <div className="game-stats">
           <div className="stat">
             <span className="stat-label">Diem</span>
-            <span className="stat-value">{score}</span>
+            <span className="stat-value">{score}/{TARGET_SCORE}</span>
           </div>
           <div className="stat">
             <span className="stat-label">Luot</span>
@@ -416,7 +433,7 @@ const Match3Game = () => {
             grid={displayGrid}
             cursor={cursor}
             showCursor={!gameOver}
-            cellSize={40}
+            cellSize={50}
             glowEffect={true}
             onCellClick={(x, y) => {
               // Cho phep click de debug
@@ -431,8 +448,10 @@ const Match3Game = () => {
             <div
               className="selected-overlay"
               style={{
-                left: `${10 + selectedCell.x * 42}px`,
-                top: `${10 + selectedCell.y * 42}px`,
+                left: `${16 + selectedCell.x * (50 + 6) - 3}px`,
+                top: `${16 + selectedCell.y * (50 + 6) - 3}px`,
+                width: '56px',
+                height: '56px',
               }}
             />
           )}
@@ -443,8 +462,10 @@ const Match3Game = () => {
               key={i}
               className="hint-overlay"
               style={{
-                left: `${10 + pos.x * 42}px`,
-                top: `${10 + pos.y * 42}px`,
+                left: `${16 + pos.x * (50 + 6) - 3}px`,
+                top: `${16 + pos.y * (50 + 6) - 3}px`,
+                width: '56px',
+                height: '56px',
               }}
             />
           ))}
@@ -457,16 +478,52 @@ const Match3Game = () => {
             showHint={true}
           />
           
-          <div className="game-instructions">
-            <h3>Huong dan</h3>
-            <ul>
-              <li>Di chuyen: ← →</li>
-              <li>Chon o: Enter</li>
-              <li>Chon 2 o ke nhau de hoan doi</li>
-              <li>Ghep 3+ o cung mau de ghi diem</li>
-              <li>Goi y: H</li>
-              <li>Thoat: Esc</li>
-            </ul>
+          <div className="game-instructions-wrapper">
+            <button 
+              className="instructions-toggle"
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              <span>Huong dan</span>
+              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
+                {showInstructions ? '▲' : '▼'}
+              </span>
+            </button>
+            
+            {showInstructions && (
+              <div className="game-instructions">
+                <div className="instruction-item">
+                  <span className="instruction-icon">🕹️</span>
+                  <span className="instruction-text">Di chuyen:</span>
+                  <div className="key-group">
+                    <kbd>←</kbd>
+                    <kbd>→</kbd>
+                  </div>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">✅</span>
+                  <span className="instruction-text">Chon o:</span>
+                  <kbd>Enter</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🔄</span>
+                  <span className="instruction-text">Hoan doi 2 o ke nhau</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">⭐</span>
+                  <span className="instruction-text">Ghep 3+ o cung mau</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">💡</span>
+                  <span className="instruction-text">Goi y:</span>
+                  <kbd>H</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🚪</span>
+                  <span className="instruction-text">Thoat:</span>
+                  <kbd>Esc</kbd>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -475,11 +532,15 @@ const Match3Game = () => {
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
-            <h2>🎮 Ket thuc!</h2>
+            <h2>{isWin ? '🎉 Chien thang!' : '😢 Het luot!'}</h2>
             <div className="final-stats">
               <div className="final-stat">
                 <span>Diem so</span>
                 <strong>{score}</strong>
+              </div>
+              <div className="final-stat">
+                <span>Luot con lai</span>
+                <strong>{moves}</strong>
               </div>
               <div className="final-stat">
                 <span>Thoi gian</span>
