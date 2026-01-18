@@ -5,34 +5,42 @@ import "./MatrixBoard.css";
 /**
  * MatrixBoard - Component ma tran LED
  * Nhan vao mang 2 chieu chua ma mau va render thanh luoi LED
+ * Thiet ke moi: cac o tron voi duong noi giua chung
  *
  * @param {Array} grid
+ * @param {Array} cellClassGrid - Mang 2 chieu chua class tuy chinh cho moi cell
  * @param {Object} cursor
  * @param {Function} onCellClick
  * @param {number} cellSize
  * @param {boolean} showCursor
  * @param {boolean} glowEffect
+ * @param {boolean} showConnectors - Hien thi duong noi giua cac o
  */
 const MatrixBoard = memo(
   ({
     grid = [],
+    cellClassGrid = null,
     cursor = null,
     onCellClick = null,
-    cellSize = 20,
+    cellSize = 24,
     showCursor = true,
     glowEffect = true,
+    showConnectors = true,
     className = "",
   }) => {
     const rows = grid.length;
     const cols = rows > 0 ? grid[0].length : 0;
 
+    // Gap between cells
+    const gapSize = 6;
+
     const gridStyle = {
       display: "grid",
       gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
       gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
-      gap: "3px",
-      padding: "12px",
-      borderRadius: "12px",
+      gap: `${gapSize}px`,
+      padding: "16px",
+      borderRadius: "16px",
     };
 
     const renderCell = (color, rowIndex, colIndex) => {
@@ -43,27 +51,31 @@ const MatrixBoard = memo(
         color !== "transparent" &&
         color !== "#000000" &&
         color !== "#1a1a1a";
+      
+      // Lay class tuy chinh tu cellClassGrid
+      const customClass = cellClassGrid?.[rowIndex]?.[colIndex] || "";
 
-      const cellClasses = classnames("matrix-cell", {
+      const cellClasses = classnames("matrix-cell", customClass, {
         "matrix-cell--active": hasColor,
         "matrix-cell--cursor": isCursor,
         "matrix-cell--glow": glowEffect && hasColor,
+        // Them class de ve duong noi
+        "matrix-cell--connect-right": showConnectors && colIndex < cols - 1,
+        "matrix-cell--connect-bottom": showConnectors && rowIndex < rows - 1,
       });
 
       const cellStyle = {
         width: `${cellSize}px`,
         height: `${cellSize}px`,
         backgroundColor: hasColor ? color : undefined,
-        boxShadow: hasColor
-          ? `0 0 ${
-              cellSize / 3
-            }px ${color}88, inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.2)`
-          : undefined,
+        // CSS variables for connector positioning
+        "--cell-size": `${cellSize}px`,
+        "--gap-size": `${gapSize}px`,
       };
 
       return (
         <div
-          key={`${rowIndex}-${colIndex}`}
+          key={`cell-${rowIndex}-${colIndex}`}
           className={cellClasses}
           style={cellStyle}
           onClick={() => onCellClick && onCellClick(colIndex, rowIndex)}
@@ -99,3 +111,4 @@ const MatrixBoard = memo(
 MatrixBoard.displayName = "MatrixBoard";
 
 export default MatrixBoard;
+

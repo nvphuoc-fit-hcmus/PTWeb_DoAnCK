@@ -13,7 +13,7 @@ const CARD_COLORS = [
   '#DDA0DD', '#FF9F43', '#6C5CE7', '#00CEC9',
 ];
 const CARD_BACK = '#2d3436'; // Mau mat sau the
-const CARD_MATCHED = '#1a1a1a'; // Mau khi da ghep xong
+const CARD_MATCHED = 'transparent'; // Mau khi da ghep xong (bien mat)
 
 // Tao mang cac cap the va xao tron
 const createCards = () => {
@@ -35,6 +35,7 @@ const createCards = () => {
         color: cards[y * GRID_SIZE + x],
         isFlipped: false,
         isMatched: false,
+        isDisappearing: false, // Trang thai dang bien mat
       });
     }
     grid.push(row);
@@ -59,6 +60,11 @@ const MemoryGame = () => {
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef(null);
+  
+  // Refs cho cac handler de tranh stale closure
+  const handleCardFlipRef = useRef(null);
+  const handleBackRef = useRef(null);
+  const showHintRef = useRef(null);
 
   // Game controller
   const {
@@ -72,11 +78,11 @@ const MemoryGame = () => {
     enabled: !isChecking && !gameOver,
     onAction: (action) => {
       if (action === 'enter') {
-        handleCardFlip();
+        handleCardFlipRef.current?.();
       } else if (action === 'back') {
-        handleBack();
+        handleBackRef.current?.();
       } else if (action === 'hint') {
-        showHint();
+        showHintRef.current?.();
       }
     },
   });
@@ -127,8 +133,9 @@ const MemoryGame = () => {
       const card2 = newCards[second.y][second.x];
       
       if (card1.color === card2.color) {
-        // Match!
+        // Match! Bat dau hieu ung bien mat
         setTimeout(() => {
+          // Buoc 1: Bat dau animation bien mat
           setCards((prev) =>
             prev.map((row, y) =>
               row.map((c, x) => {
@@ -136,16 +143,33 @@ const MemoryGame = () => {
                   (x === first.x && y === first.y) ||
                   (x === second.x && y === second.y)
                 ) {
-                  return { ...c, isMatched: true };
+                  return { ...c, isDisappearing: true };
                 }
                 return c;
               })
             )
           );
-          setMatchedPairs((prev) => prev + 1);
-          setScore((prev) => prev + 100);
-          setFlippedCards([]);
-          setIsChecking(false);
+          
+          // Buoc 2: Sau khi animation xong, set isMatched
+          setTimeout(() => {
+            setCards((prev) =>
+              prev.map((row, y) =>
+                row.map((c, x) => {
+                  if (
+                    (x === first.x && y === first.y) ||
+                    (x === second.x && y === second.y)
+                  ) {
+                    return { ...c, isMatched: true, isDisappearing: false };
+                  }
+                  return c;
+                })
+              )
+            );
+            setMatchedPairs((prev) => prev + 1);
+            setScore((prev) => prev + 100);
+            setFlippedCards([]);
+            setIsChecking(false);
+          }, 400); // Thoi gian animation
         }, 500);
       } else {
         // Khong match, up lai
@@ -170,34 +194,78 @@ const MemoryGame = () => {
     }
   }, [cards, cursor, flippedCards, isChecking, gameOver]);
 
-  // Goi y - lat tat ca the trong 2 giay
+  // Goi y - chi hien 1 cap the giong nhau
   const showHint = () => {
-    if (gameOver) return;
+    if (gameOver || isChecking) return;
+    
+    // Tim 1 cap the chua match
+    const unmatchedCards = [];
+    cards.forEach((row, y) => {
+      row.forEach((card, x) => {
+        if (!card.isMatched && !card.isDisappearing) {
+          unmatchedCards.push({ x, y, color: card.color });
+        }
+      });
+    });
+    
+    // Tim 1 cap co cung mau
+    let hintPair = null;
+    for (let i = 0; i < unmatchedCards.length; i++) {
+      for (let j = i + 1; j < unmatchedCards.length; j++) {
+        if (unmatchedCards[i].color === unmatchedCards[j].color) {
+          hintPair = [unmatchedCards[i], unmatchedCards[j]];
+          break;
+        }
+      }
+      if (hintPair) break;
+    }
+    
+    if (!hintPair) return;
     
     // Tru diem khi dung hint
-    setScore((prev) => Math.max(0, prev - 50));
+    setScore((prev) => Math.max(0, prev - 30));
     
-    // Lat tat ca the
+    // Chi lat 2 the cua cap duoc goi y
     setCards((prev) =>
-      prev.map((row) =>
-        row.map((c) => ({ ...c, isFlipped: true }))
+      prev.map((row, y) =>
+        row.map((c, x) => {
+          if (
+            (x === hintPair[0].x && y === hintPair[0].y) ||
+            (x === hintPair[1].x && y === hintPair[1].y)
+          ) {
+            return { ...c, isFlipped: true, isHinted: true };
+          }
+          return c;
+        })
       )
     );
     
-    // Up lai sau 2 giay
+    // Up lai sau 1.5 giay
     setTimeout(() => {
       setCards((prev) =>
         prev.map((row) =>
-          row.map((c) => ({ ...c, isFlipped: c.isMatched }))
+          row.map((c) => {
+            if (c.isHinted) {
+              return { ...c, isFlipped: false, isHinted: false };
+            }
+            return c;
+          })
         )
       );
-    }, 2000);
+    }, 1500);
   };
 
   // Quay lai
   const handleBack = () => {
     navigate('/games');
   };
+  
+  // Gan refs de tranh stale closure
+  useEffect(() => {
+    handleCardFlipRef.current = handleCardFlip;
+    handleBackRef.current = handleBack;
+    showHintRef.current = showHint;
+  }, [handleCardFlip, handleBack, showHint]);
 
   // Kiem tra thang
   useEffect(() => {
@@ -258,12 +326,26 @@ const MemoryGame = () => {
   const displayGrid = cards.map((row) =>
     row.map((card) => {
       if (card.isMatched) {
-        return CARD_MATCHED;
+        return CARD_MATCHED; // transparent
+      }
+      if (card.isDisappearing) {
+        return card.color; // Giu mau trong luc disappear de animation dep
       }
       if (card.isFlipped) {
         return card.color;
       }
       return CARD_BACK;
+    })
+  );
+  
+  // Tao grid class de apply animation
+  const cellClassGrid = cards.map((row) =>
+    row.map((card) => {
+      const classes = [];
+      if (card.isDisappearing) classes.push('disappearing');
+      if (card.isMatched) classes.push('matched');
+      if (card.isHinted) classes.push('hinted');
+      return classes.join(' ');
     })
   );
 
@@ -295,6 +377,7 @@ const MemoryGame = () => {
         <div className="game-board memory-board">
           <MatrixBoard
             grid={displayGrid}
+            cellClassGrid={cellClassGrid}
             cursor={cursor}
             showCursor={!gameOver}
             cellSize={60}
@@ -331,6 +414,10 @@ const MemoryGame = () => {
               <div className="final-stat">
                 <span>Diem so</span>
                 <strong>{score}</strong>
+              </div>
+              <div className="final-stat">
+                <span>Cap da ghep</span>
+                <strong>{matchedPairs}/{CARD_COLORS.length}</strong>
               </div>
               <div className="final-stat">
                 <span>So luot</span>

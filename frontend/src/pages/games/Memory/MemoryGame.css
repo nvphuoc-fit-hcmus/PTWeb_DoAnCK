@@ -12,19 +12,13 @@
 
 /* Hiệu ứng lật thẻ */
 .memory-board .matrix-cell--active {
-  transform: rotateY(0deg) scale(1.05);
+  transform: rotateY(0deg) scale(1.02);
 }
 
-/* Thẻ úp */
+/* Thẻ úp - màu tối hơn */
 .memory-board .matrix-cell:not(.matrix-cell--active) {
   background: linear-gradient(145deg, #3d3d3d, #2d2d2d) !important;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
-}
-
-/* Hiệu ứng khi matched */
-.memory-board .matrix-cell[style*="background-color: #1a1a1a"] {
-  opacity: 0.3;
-  transform: scale(0.9);
 }
 
 /* Override game stats for memory */
@@ -43,24 +37,73 @@
 
 .memory-board .matrix-cell {
   transform-style: preserve-3d;
-  transition: transform 0.4s ease, background-color 0.3s ease;
+  transition: transform 0.4s ease, background-color 0.3s ease, opacity 0.4s ease;
 }
 
-/* Animation khi match */
-@keyframes match-celebrate {
+/* ==================== DISAPPEARING ANIMATION ==================== */
+
+/* Animation biến mất khi match */
+@keyframes card-disappear {
   0% {
     transform: scale(1);
+    opacity: 1;
   }
-  50% {
-    transform: scale(1.2);
-    box-shadow: 0 0 30px currentColor;
+  30% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 25px currentColor;
   }
   100% {
-    transform: scale(0.9);
-    opacity: 0.3;
+    transform: scale(0);
+    opacity: 0;
   }
 }
 
-.memory-board .matrix-cell--matched {
-  animation: match-celebrate 0.5s ease forwards;
+/* Thẻ đang biến mất */
+.memory-board .matrix-cell.disappearing {
+  animation: card-disappear 0.4s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Thẻ đã biến mất (transparent) */
+.memory-board .matrix-cell.matched {
+  opacity: 0 !important;
+  transform: scale(0) !important;
+  pointer-events: none;
+}
+
+/* Ô trống sau khi thẻ biến mất - hiển thị với border mờ */
+.memory-board .matrix-cell[style*="transparent"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+/* Cursor vẫn hiển thị đẹp trên ô đã biến mất */
+.memory-board .matrix-cell.matched.matrix-cell--cursor,
+.memory-board .matrix-cell[style*="transparent"].matrix-cell--cursor {
+  border: 2px solid #ff4757 !important;
+  background: rgba(255, 71, 87, 0.15) !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  animation: cursor-blink 0.5s ease-in-out infinite alternate;
+}
+
+/* ==================== HINT ANIMATION ==================== */
+
+/* Thẻ được gợi ý - nhấp nháy viền vàng */
+@keyframes hint-glow {
+  0% {
+    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700;
+  }
+  100% {
+    box-shadow: 0 0 15px #ffd700, 0 0 25px #ffd700, 0 0 35px #ffd700;
+  }
+}
+
+.memory-board .matrix-cell.hinted {
+  animation: hint-glow 0.3s ease-in-out infinite alternate;
+  border: 2px solid #ffd700 !important;
 }

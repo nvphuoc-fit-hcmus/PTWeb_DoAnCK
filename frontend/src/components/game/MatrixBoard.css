@@ -1,3 +1,4 @@
+/* MatrixBoard - LED Matrix Style with Connector Lines */
 
 .matrix-board {
   display: flex;
@@ -8,44 +9,81 @@
 
 .matrix-grid {
   border: 4px solid #ccc;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f5f5f5, #e8e8e8);
   box-shadow: 
-    inset 0 2px 10px rgba(0, 0, 0, 0.1),
-    0 4px 20px rgba(0, 0, 0, 0.15);
+    inset 0 2px 10px rgba(0, 0, 0, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.12),
+    0 8px 40px rgba(0, 0, 0, 0.08);
 }
 
+/* Individual LED cell - Circular design */
 .matrix-cell {
   border-radius: 50%;
-  transition: all 0.12s ease;
+  transition: transform 0.1s ease;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+    inset 0 3px 6px rgba(255, 255, 255, 0.6),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
+/* Inactive cells - Light gray circles */
 .matrix-cell:not(.matrix-cell--active) {
-  background: linear-gradient(145deg, #d8d8d8, #c8c8c8) !important;
+  background: linear-gradient(145deg, #e0e0e0, #d0d0d0) !important;
   box-shadow: 
-    inset 0 2px 3px rgba(255, 255, 255, 0.6),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+    inset 0 3px 6px rgba(255, 255, 255, 0.7),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* Active cells with color */
 .matrix-cell--active {
-  transform: scale(1.02);
   box-shadow: 
     inset 0 2px 4px rgba(255, 255, 255, 0.5),
     inset 0 -2px 4px rgba(0, 0, 0, 0.2);
 }
+
+/* ==================== CONNECTOR LINES ==================== */
+
+/* Horizontal connector (to the right) */
+.matrix-cell--connect-right::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--gap-size, 6px);
+  height: 3px;
+  background: linear-gradient(90deg, #d0d0d0, #c8c8c8);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* Vertical connector (to the bottom) */
+.matrix-cell--connect-bottom::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: var(--gap-size, 6px);
+  background: linear-gradient(180deg, #d0d0d0, #c8c8c8);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* ==================== CURSOR ==================== */
 
 .matrix-cell--cursor {
   animation: cursor-blink 0.5s ease-in-out infinite alternate;
   border: 2px solid #ff4757 !important;
   z-index: 10;
   box-shadow: 
-    0 0 8px rgba(255, 71, 87, 0.6),
+    0 0 10px rgba(255, 71, 87, 0.6),
     inset 0 2px 4px rgba(255, 255, 255, 0.5) !important;
 }
 
@@ -53,21 +91,17 @@
   0% {
     opacity: 0.7;
     transform: scale(0.95);
-    box-shadow: 
-      0 0 5px rgba(255, 71, 87, 0.4),
-      inset 0 2px 4px rgba(255, 255, 255, 0.5);
   }
   100% {
     opacity: 1;
-    transform: scale(1.08);
-    box-shadow: 
-      0 0 12px rgba(255, 71, 87, 0.8),
-      inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
   }
 }
 
+/* ==================== GLOW EFFECT ==================== */
+
 .matrix-cell--glow {
-  animation: glow-pulse 1.2s ease-in-out infinite alternate;
+  animation: glow-pulse 1.5s ease-in-out infinite alternate;
 }
 
 @keyframes glow-pulse {
@@ -75,9 +109,11 @@
     filter: brightness(1) saturate(1);
   }
   100% {
-    filter: brightness(1.2) saturate(1.2);
+    filter: brightness(1.08) saturate(1.05);
   }
 }
+
+/* ==================== INFO DISPLAY ==================== */
 
 .matrix-info {
   display: flex;
@@ -90,6 +126,8 @@
   border-radius: 20px;
 }
 
+/* ==================== RESPONSIVE ==================== */
+
 @media (max-width: 768px) {
   .matrix-grid {
     transform: scale(0.8);
@@ -97,16 +135,25 @@
   }
 }
 
-.matrix-board--dark {
-  --matrix-bg: #0a0a0a;
-  --matrix-border: #333;
+/* ==================== DARK MODE ==================== */
+
+.matrix-board--dark .matrix-grid {
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  border-color: #444;
 }
 
-.matrix-board--light {
-  --matrix-bg: #e0e0e0;
-  --matrix-border: #999;
+.matrix-board--dark .matrix-cell:not(.matrix-cell--active) {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a) !important;
 }
 
+.matrix-board--dark .matrix-cell--connect-right::after,
+.matrix-board--dark .matrix-cell--connect-bottom::before {
+  background: linear-gradient(90deg, #3a3a3a, #2a2a2a);
+}
+
+/* ==================== GAME EFFECTS ==================== */
+
+/* Matched animation (for Match-3 game) */
 .matrix-cell--matched {
   animation: matched-pop 0.3s ease-out forwards;
 }
@@ -126,6 +173,7 @@
   }
 }
 
+/* Selected cell (for game interactions) */
 .matrix-cell--selected {
   border: 2px solid #ffff00 !important;
   animation: selected-pulse 0.3s ease-in-out infinite alternate;
@@ -140,6 +188,7 @@
   }
 }
 
+/* Hint animation */
 .matrix-cell--hint {
   animation: hint-flash 0.8s ease-in-out infinite;
 }
@@ -151,4 +200,11 @@
   50% {
     opacity: 0.3;
   }
+}
+
+/* ==================== HOVER (subtle) ==================== */
+
+.matrix-cell:hover {
+  transform: scale(1.05);
+  z-index: 5;
 }

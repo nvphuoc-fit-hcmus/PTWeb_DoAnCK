@@ -54,7 +54,7 @@ const GameSelect = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: "24px",
         }}
       >
@@ -65,6 +65,9 @@ const GameSelect = () => {
             style={{
               cursor: "pointer",
               transition: "transform 0.2s, box-shadow 0.2s",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "280px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-4px)";
@@ -99,7 +102,7 @@ const GameSelect = () => {
             </p>
             <button
               className="btn btn-primary"
-              style={{ width: "100%" }}
+              style={{ width: "100%", marginTop: "auto" }}
               onClick={() => handlePlayGame(game.slug)}
             >
               Chơi ngay
