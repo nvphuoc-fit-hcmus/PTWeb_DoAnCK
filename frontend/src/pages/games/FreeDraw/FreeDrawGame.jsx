@@ -47,6 +47,7 @@ const FreeDrawGame = () => {
   const [showPalette, setShowPalette] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   // Ref de theo doi trang thai drawing
   const isDrawingRef = useRef(false);
@@ -332,11 +333,21 @@ const FreeDrawGame = () => {
             showCursor={true}
             cellSize={20}
             glowEffect={false}
+            showConnectors={true}
             onCellClick={(x, y) => {
-              // Cho phep click de ve
+              // Cho phep click de ve theo brush size
               setGrid((prevGrid) => {
                 const newGrid = prevGrid.map((row) => [...row]);
-                newGrid[y][x] = currentColor;
+                // Ve theo brush size
+                for (let dy = 0; dy < brushSize; dy++) {
+                  for (let dx = 0; dx < brushSize; dx++) {
+                    const newY = y + dy;
+                    const newX = x + dx;
+                    if (newY < GRID_SIZE && newX < GRID_SIZE) {
+                      newGrid[newY][newX] = currentColor;
+                    }
+                  }
+                }
                 return newGrid;
               });
             }}
@@ -350,20 +361,48 @@ const FreeDrawGame = () => {
             showHint={true}
           />
           
-          <div className="game-instructions">
-            <h3>Huong dan</h3>
-            <ul>
-              <li>Di chuyen: ← →</li>
-              <li>Ve/Dung: Enter</li>
-              <li>Chon mau: H</li>
-              <li>Thoat: Esc</li>
-            </ul>
+          <div className="game-instructions-wrapper">
+            <button 
+              className="instructions-toggle"
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              <span>Huong dan</span>
+              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
+                {showInstructions ? '▲' : '▼'}
+              </span>
+            </button>
             
-            <h4>Phim tat</h4>
-            <ul>
-              <li>Click vao o de ve</li>
-              <li>Click vao mau de chon</li>
-            </ul>
+            {showInstructions && (
+              <div className="game-instructions">
+                <div className="instruction-item">
+                  <span className="instruction-icon">🕹️</span>
+                  <span className="instruction-text">Di chuyen:</span>
+                  <div className="key-group">
+                    <kbd>←</kbd>
+                    <kbd>→</kbd>
+                  </div>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🖌️</span>
+                  <span className="instruction-text">Ve/Dung:</span>
+                  <kbd>Enter</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🎨</span>
+                  <span className="instruction-text">Chon mau:</span>
+                  <kbd>H</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🖥️</span>
+                  <span className="instruction-text">Click vao o de ve</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🚪</span>
+                  <span className="instruction-text">Thoat:</span>
+                  <kbd>Esc</kbd>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
