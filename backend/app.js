@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocs = require("./config/swagger.config");
+const apiDocsAuth = require("./middleware/apiDocsAuth");
 
 // Import routes
 const authRoutes = require("./routes/auth.routes");
@@ -35,6 +38,9 @@ app.use("/api/friends", friendRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/admin", adminRoutes);
+
+// API Documentation (protected with Basic Auth)
+app.use("/api-docs", apiDocsAuth, swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Health check
 app.get("/api/health", (req, res) => {
