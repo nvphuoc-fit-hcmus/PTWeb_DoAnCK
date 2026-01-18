@@ -107,3 +107,114 @@
   animation: hint-glow 0.3s ease-in-out infinite alternate;
   border: 2px solid #ffd700 !important;
 }
+
+/* ==================== INSTRUCTIONS PANEL ==================== */
+
+/* Instructions wrapper */
+.memory-game .game-instructions-wrapper {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  min-width: 200px;
+  align-self: flex-start;
+}
+
+/* Toggle button */
+.memory-game .instructions-toggle {
+  width: 100%;
+  padding: 12px 15px;
+  background: var(--bg-secondary);
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: background 0.2s ease;
+}
+
+.memory-game .instructions-toggle:hover {
+  background: var(--bg-tertiary);
+}
+
+.memory-game .instructions-toggle .arrow {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.memory-game .game-instructions {
+  padding: 12px;
+  background: var(--bg-secondary);
+  animation: slideDown 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 400px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+
+/* Instruction items */
+.memory-game .instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.memory-game .instruction-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.memory-game .instruction-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.memory-game .instruction-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* Keyboard keys styling */
+.memory-game kbd {
+  display: inline-block;
+  padding: 3px 8px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-align: center;
+  min-width: 28px;
+}
+
+.memory-game .key-group {
+  display: flex;
+  gap: 4px;
+}

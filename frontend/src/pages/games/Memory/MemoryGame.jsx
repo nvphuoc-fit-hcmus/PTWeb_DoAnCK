@@ -56,6 +56,7 @@ const MemoryGame = () => {
   const [flippedCards, setFlippedCards] = useState([]);
   const [isChecking, setIsChecking] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -392,15 +393,48 @@ const MemoryGame = () => {
             showHint={true}
           />
           
-          <div className="game-instructions">
-            <h3>Huong dan</h3>
-            <ul>
-              <li>Di chuyen: ← →</li>
-              <li>Lat the: Enter</li>
-              <li>Tim 2 the cung mau</li>
-              <li>Goi y (-50 diem): H</li>
-              <li>Thoat: Esc</li>
-            </ul>
+          <div className="game-instructions-wrapper">
+            <button 
+              className="instructions-toggle"
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              <span>Huong dan</span>
+              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
+                {showInstructions ? '▲' : '▼'}
+              </span>
+            </button>
+            
+            {showInstructions && (
+              <div className="game-instructions">
+                <div className="instruction-item">
+                  <span className="instruction-icon">🕹️</span>
+                  <span className="instruction-text">Di chuyen:</span>
+                  <div className="key-group">
+                    <kbd>←</kbd>
+                    <kbd>→</kbd>
+                  </div>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🎴</span>
+                  <span className="instruction-text">Lat the:</span>
+                  <kbd>Enter</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🎯</span>
+                  <span className="instruction-text">Tim 2 the cung mau</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">💡</span>
+                  <span className="instruction-text">Goi y (-30 diem):</span>
+                  <kbd>H</kbd>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">🚪</span>
+                  <span className="instruction-text">Thoat:</span>
+                  <kbd>Esc</kbd>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
