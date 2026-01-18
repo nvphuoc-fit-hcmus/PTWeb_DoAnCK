@@ -100,11 +100,12 @@ const getPendingRequests = async (req, res) => {
 
 const getFriends = async (req, res) => {
   try {
-    const friends = await Friendship.getFriends(req.user.id);
+    const { page = 1, limit = 10 } = req.query;
+    const friends = await Friendship.getFriends(req.user.id, page, limit);
 
     res.json({
       success: true,
-      data: friends,
+      ...friends, // Contains { data, pagination }
     });
   } catch (error) {
     console.error("Get friends error:", error);

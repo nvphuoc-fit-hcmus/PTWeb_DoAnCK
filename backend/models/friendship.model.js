@@ -71,7 +71,10 @@ const Friendship = {
       );
   },
 
-  async getFriends(userId) {
+  async getFriends(userId, page = 1, limit = 10) {
+    const { paginate } = require("../utils/pagination.helper");
+    
+    // Get friend IDs
     const friends = await db(this.tableName)
       .where(function () {
         this.where({ requester_id: userId, status: "accepted" }).orWhere({
@@ -85,11 +88,27 @@ const Friendship = {
       f.requester_id === userId ? f.addressee_id : f.requester_id
     );
 
-    if (friendIds.length === 0) return [];
+    if (friendIds.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      };
+    }
 
-    return db("users")
+    // Get paginated users
+    const query = db("users")
       .whereIn("id", friendIds)
-      .select("id", "username", "display_name", "avatar_config", "last_login");
+      .select("id", "username", "display_name", "avatar_config", "last_login")
+      .orderBy("username", "asc");
+
+    return paginate(query, page, limit);
   },
 
   async unfriend(userId1, userId2) {
