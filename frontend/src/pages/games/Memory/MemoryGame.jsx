@@ -75,7 +75,7 @@ const MemoryGame = () => {
   } = useGameController({
     gridWidth: GRID_SIZE,
     gridHeight: GRID_SIZE,
-    mode: 'linear',
+    mode: 'grid', // Changed from 'linear' for 4-directional navigation
     enabled: !isChecking && !gameOver,
     onAction: (action) => {
       if (action === 'enter') {
@@ -301,6 +301,52 @@ const MemoryGame = () => {
     }
   };
 
+  // Save game manually
+  const handleSaveGame = () => {
+    if (gameOver) return;
+    try {
+      const saveData = {
+        cards,
+        score,
+        moves,
+        matchedPairs,
+        timeElapsed,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('memory_saved', JSON.stringify(saveData));
+      alert('✅ Game saved successfully!');
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('❌ Error saving game!');
+    }
+  };
+
+  // Load saved game
+  const handleLoadGame = () => {
+    try {
+      const saved = localStorage.getItem('memory_saved');
+      if (!saved) {
+        alert('No saved game found!');
+        return;
+      }
+      
+      const saveData = JSON.parse(saved);
+      setCards(saveData.cards);
+      setScore(saveData.score);
+      setMoves(saveData.moves);
+      setMatchedPairs(saveData.matchedPairs);
+      setTimeElapsed(saveData.timeElapsed);
+      setGameOver(false);
+      setFlippedCards([]);
+      setIsChecking(false);
+      
+      alert(`✅ Game loaded! (Saved at: ${new Date(saveData.timestamp).toLocaleString()})`);
+    } catch (error) {
+      console.error('Load error:', error);
+      alert('❌ Error loading game!');
+    }
+  };
+
   // Choi lai
   const restartGame = () => {
     setCards(createCards());
@@ -353,23 +399,48 @@ const MemoryGame = () => {
   return (
     <div className="memory-game">
       <div className="game-header">
-        <h1>🧠 Co Tri Nho</h1>
+        <h1>🧠 Memory Game</h1>
         <div className="game-stats">
           <div className="stat">
-            <span className="stat-label">Diem</span>
+            <span className="stat-label">Score</span>
             <span className="stat-value">{score}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Luot</span>
+            <span className="stat-label">Moves</span>
             <span className="stat-value">{moves}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Cap</span>
+            <span className="stat-label">Pairs</span>
             <span className="stat-value">{matchedPairs}/{CARD_COLORS.length}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Thoi gian</span>
+            <span className="stat-label">Time</span>
             <span className="stat-value">{formatTime(timeElapsed)}</span>
+          </div>
+          
+          {/* Save/Load buttons */}
+          <div 
+            className="stat stat-button" 
+            onClick={handleSaveGame}
+            style={{ 
+              cursor: gameOver ? 'not-allowed' : 'pointer',
+              opacity: gameOver ? 0.5 : 1,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">💾 Save</span>
+          </div>
+          <div 
+            className="stat stat-button" 
+            onClick={handleLoadGame}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">📂 Load</span>
           </div>
         </div>
       </div>
@@ -398,7 +469,7 @@ const MemoryGame = () => {
               className="instructions-toggle"
               onClick={() => setShowInstructions(!showInstructions)}
             >
-              <span>Huong dan</span>
+              <span>Instructions</span>
               <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
                 {showInstructions ? '▲' : '▼'}
               </span>
@@ -407,30 +478,32 @@ const MemoryGame = () => {
             {showInstructions && (
               <div className="game-instructions">
                 <div className="instruction-item">
-                  <span className="instruction-icon">🕹️</span>
-                  <span className="instruction-text">Di chuyen:</span>
+                  <span className="instruction-icon">🎮</span>
+                  <span className="instruction-text">Move:</span>
                   <div className="key-group">
+                    <kbd>↑</kbd>
+                    <kbd>↓</kbd>
                     <kbd>←</kbd>
                     <kbd>→</kbd>
                   </div>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">🎴</span>
-                  <span className="instruction-text">Lat the:</span>
+                  <span className="instruction-text">Flip card:</span>
                   <kbd>Enter</kbd>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">🎯</span>
-                  <span className="instruction-text">Tim 2 the cung mau</span>
+                  <span className="instruction-text">Match 2 same colors</span>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">💡</span>
-                  <span className="instruction-text">Goi y (-30 diem):</span>
+                  <span className="instruction-text">Hint (-30 pts):</span>
                   <kbd>H</kbd>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">🚪</span>
-                  <span className="instruction-text">Thoat:</span>
+                  <span className="instruction-text">Exit:</span>
                   <kbd>Esc</kbd>
                 </div>
               </div>
@@ -443,31 +516,31 @@ const MemoryGame = () => {
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
-            <h2>🎉 Chien thang!</h2>
+            <h2>🎉 Victory!</h2>
             <div className="final-stats">
               <div className="final-stat">
-                <span>Diem so</span>
+                <span>Score</span>
                 <strong>{score}</strong>
               </div>
               <div className="final-stat">
-                <span>Cap da ghep</span>
+                <span>Pairs Matched</span>
                 <strong>{matchedPairs}/{CARD_COLORS.length}</strong>
               </div>
               <div className="final-stat">
-                <span>So luot</span>
+                <span>Moves</span>
                 <strong>{moves}</strong>
               </div>
               <div className="final-stat">
-                <span>Thoi gian</span>
+                <span>Time</span>
                 <strong>{formatTime(timeElapsed)}</strong>
               </div>
             </div>
             <div className="game-over-buttons">
               <button className="btn btn-primary" onClick={restartGame}>
-                Choi lai
+                Play Again
               </button>
               <button className="btn btn-secondary" onClick={() => navigate('/games')}>
-                Thoat
+                Exit
               </button>
             </div>
           </div>
