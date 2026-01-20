@@ -19,7 +19,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 api.interceptors.response.use(
@@ -31,7 +31,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const authAPI = {
@@ -60,7 +60,7 @@ export const gameAPI = {
       time_elapsed: timeElapsed,
     }),
   loadGame: (sessionId) => api.get(`/games/load/${sessionId}`),
-  getSavedGames: () => api.get("/games/saved"),
+  getSavedGames: () => api.get("/games/saved/list"),
   finishGame: (sessionId, status, score, timeElapsed) =>
     api.post("/games/finish", {
       session_id: sessionId,
