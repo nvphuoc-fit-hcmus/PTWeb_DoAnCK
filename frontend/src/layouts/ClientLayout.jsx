@@ -57,7 +57,7 @@ const ClientLayout = () => {
 
         <div className="header-actions">
           <button className="theme-toggle" onClick={toggleTheme}>
-            {isDarkMode ? "☀️" : "🌙"}
+            {isDarkMode ? "🌙" : "☀️"}
           </button>
 
           {isAuthenticated ? (

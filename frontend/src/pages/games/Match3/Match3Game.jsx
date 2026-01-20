@@ -535,22 +535,78 @@ const Match3Game = () => {
             showHint={true}
           />
           
-          {/* Save/Load Buttons */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+          {/* Save/Load Buttons - Redesigned */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            marginBottom: '15px',
+            padding: '10px',
+            background: 'var(--bg-tertiary)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+          }}>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: 'var(--text-muted)',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '4px',
+            }}>
+              📁 Quản lý Game
+            </div>
             <button 
-              className="btn btn-secondary" 
+              className="btn btn-primary" 
               onClick={handleSaveGame}
               disabled={gameOver}
-              style={{ flex: 1, fontSize: '0. 875rem' }}
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                background: gameOver ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                boxShadow: gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!gameOver) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
             >
-              💾 Lưu
+              💾 Lưu Game
             </button>
             <button 
               className="btn btn-secondary" 
               onClick={handleLoadGame}
-              style={{ flex: 1, fontSize: '0.875rem' }}
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                color: '#fff',
+                border: 'none',
+                boxShadow: '0 4px 15px rgba(245, 87, 108, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(245, 87, 108, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(245, 87, 108, 0.4)';
+              }}
             >
-              📂 Tải
+              📂 Tải Game Đã Lưu
             </button>
           </div>
           
