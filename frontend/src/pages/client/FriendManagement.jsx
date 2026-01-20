@@ -8,6 +8,9 @@ const FriendManagement = () => {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+
+  const [suggestions, setSuggestions] = useState([]);
+
   const [searchInput, setSearchInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
@@ -45,6 +48,36 @@ const FriendManagement = () => {
     }
   }, [user?.id]);
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (activeTab === "search" && !searchInput) {
+        try {
+          setIsLoading(true);
+          const res = await userAPI.searchUsers("");
+          const allUsers = res.data.data?.users || res.data.data || [];
+
+          const filtered = allUsers.filter((u) => {
+            const isMe = u.id === user.id;
+            const isFriend = friends.some((f) => f.id === u.id);
+            const isPending = friendRequests.some(
+              (r) => r.requester_id === u.id,
+            );
+
+            return !isMe && !isFriend && !isPending;
+          });
+
+          setSuggestions(filtered.slice(0, 12));
+        } catch (error) {
+          console.error("Error fetching suggestions:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchSuggestions();
+  }, [activeTab, searchInput, user.id, friends, friendRequests]);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchInput.trim()) {
@@ -70,15 +103,15 @@ const FriendManagement = () => {
       const response = await friendAPI.sendFriendRequest(userId);
       console.log("Response:", response);
       alert("Lời mời kết bạn đã được gửi!");
-      setSearchResults(searchResults.filter((u) => u.id !== userId));
+
+      setSearchResults((prev) => prev.filter((u) => u.id !== userId));
+      setSuggestions((prev) => prev.filter((u) => u.id !== userId));
     } catch (error) {
       console.error("Error sending request:", error);
-      console.error("Error status:", error.response?.status);
-      console.error("Error data:", error.response?.data);
       alert(
         `Lỗi: ${
           error.response?.data?.message || "Lỗi khi gửi lời mời kết bạn!"
-        }`
+        }`,
       );
     }
   };
@@ -261,9 +294,64 @@ const FriendManagement = () => {
               className="btn btn-primary"
               disabled={isLoading}
             >
-              {isLoading ? "Đang tìm kiếm..." : "🔍 Tìm kiếm"}
+              {isLoading ? "Đang tìm..." : "🔍 Tìm kiếm"}
             </button>
           </form>
+
+          {!searchInput && (
+            <div className="suggestions-section">
+              <h3
+                style={{
+                  margin: "20px 0 15px",
+                  borderBottom: "1px solid #eee",
+                  paddingBottom: "10px",
+                }}
+              >
+                ✨ Gợi ý kết bạn
+              </h3>
+
+              {isLoading && (
+                <p style={{ textAlign: "center" }}>Đang tải gợi ý...</p>
+              )}
+
+              {!isLoading && suggestions.length === 0 && (
+                <p
+                  style={{
+                    color: "var(--text-secondary)",
+                    textAlign: "center",
+                  }}
+                >
+                  Không có gợi ý nào mới.
+                </p>
+              )}
+
+              <div className="friends-grid">
+                {suggestions.map((suggestion) => (
+                  <div key={suggestion.id} className="friend-card card">
+                    <div className="friend-header">
+                      <div className="friend-avatar">
+                        {suggestion.display_name?.[0]?.toUpperCase() || "?"}
+                      </div>
+                      <div className="friend-info">
+                        <h3>{suggestion.display_name}</h3>
+                        <p>@{suggestion.username}</p>
+                      </div>
+                    </div>
+                    {suggestion.bio && (
+                      <p className="friend-bio">{suggestion.bio}</p>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleAddFriend(suggestion.id)}
+                      style={{ width: "100%" }}
+                    >
+                      + Kết bạn
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {searchResults.length === 0 && searchInput && (
             <div
@@ -279,7 +367,7 @@ const FriendManagement = () => {
 
           {searchResults.length > 0 && (
             <div className="search-results">
-              <h3 style={{ marginBottom: "20px" }}>
+              <h3 style={{ marginBottom: "20px", marginTop: "20px" }}>
                 Kết quả tìm kiếm ({searchResults.length})
               </h3>
               <div className="friends-grid">

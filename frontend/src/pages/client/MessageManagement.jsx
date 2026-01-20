@@ -49,7 +49,7 @@ const MessageManagement = () => {
       try {
         setIsLoading(true);
         const res = await messageAPI.getMessages(
-          selectedConversation.participant.id
+          selectedConversation.participant.id,
         );
         setMessages(res.data.data || []);
       } catch (error) {
@@ -229,7 +229,7 @@ const MessageManagement = () => {
                     {[...messages]
                       .sort(
                         (a, b) =>
-                          new Date(a.created_at) - new Date(b.created_at)
+                          new Date(a.created_at) - new Date(b.created_at),
                       )
                       .map((msg) => {
                         const isOwn = msg.sender_id === user?.id;
