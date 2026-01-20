@@ -155,6 +155,8 @@
   align-items: flex-start;
   width: 450px;
   flex-shrink: 0;
+  position: sticky;
+  top: 100px;
 }
 
 /* Instructions wrapper */
@@ -264,6 +266,29 @@ kbd {
 .key-group {
   display: flex;
   gap: 4px;
+}
+
+/* Instruction divider and note */
+.instruction-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-color);
+  margin: 10px 0;
+}
+
+.instruction-note {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10B981;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.instruction-note em {
+  font-size: 0.75rem;
+  color: #10B981;
+  font-style: normal;
 }
 
 /* Game Over Modal */

@@ -606,6 +606,21 @@ const Match3Game = () => {
                   <span className="instruction-text">Undo:</span>
                   <kbd>Esc</kbd>
                 </div>
+                
+                <div className="instruction-divider"></div>
+                
+                <div className="instruction-item">
+                  <span className="instruction-icon">💾</span>
+                  <span className="instruction-text">SAVE: Save current state (grid, score, moves, time) to database</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">📂</span>
+                  <span className="instruction-text">LOAD: Restore your last saved game</span>
+                </div>
+                
+                <div className="instruction-note">
+                  <em>💡 Save data is synced with your account - continue on any device!</em>
+                </div>
               </div>
             )}
           </div>

@@ -76,10 +76,22 @@ const useGameController = ({
 
         switch (dir) {
           case "left":
-            newX = Math.max(0, newX - 1);
+            newX--;
+            if (newX < 0) {
+              // Wrap to end of previous row
+              newX = gridWidth - 1;
+              newY--;
+              if (newY < 0) newY = gridHeight - 1; // Wrap to last row
+            }
             break;
           case "right":
-            newX = Math.min(gridWidth - 1, newX + 1);
+            newX++;
+            if (newX >= gridWidth) {
+              // Wrap to start of next row
+              newX = 0;
+              newY++;
+              if (newY >= gridHeight) newY = 0; // Wrap to first row
+            }
             break;
           case "up":
             newY = Math.max(0, newY - 1);

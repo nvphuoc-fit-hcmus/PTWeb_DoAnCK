@@ -452,7 +452,7 @@ const MemoryGame = () => {
             cellClassGrid={cellClassGrid}
             cursor={cursor}
             showCursor={!gameOver}
-            cellSize={60}
+            cellSize={90}
             glowEffect={true}
           />
         </div>
@@ -505,6 +505,21 @@ const MemoryGame = () => {
                   <span className="instruction-icon">🚪</span>
                   <span className="instruction-text">Exit:</span>
                   <kbd>Esc</kbd>
+                </div>
+                
+                <div className="instruction-divider"></div>
+                
+                <div className="instruction-item">
+                  <span className="instruction-icon">💾</span>
+                  <span className="instruction-text">SAVE: Save current state (cards, score, moves, time) to database</span>
+                </div>
+                <div className="instruction-item">
+                  <span className="instruction-icon">📂</span>
+                  <span className="instruction-text">LOAD: Restore your last saved game</span>
+                </div>
+                
+                <div className="instruction-note">
+                  <em>💡 Save data is synced with your account - continue on any device!</em>
                 </div>
               </div>
             )}

@@ -218,3 +218,38 @@
   display: flex;
   gap: 4px;
 }
+
+/* Instructions wrapper - wider to fit content */
+.memory-game .game-instructions-wrapper {
+  min-width: 280px;
+}
+
+.memory-game .game-sidebar {
+  width: auto;
+  position: sticky;
+  top: 100px;
+  align-self: flex-start;
+}
+
+/* Instruction divider and note */
+.memory-game .instruction-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-color);
+  margin: 10px 0;
+}
+
+.memory-game .instruction-note {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10B981;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.memory-game .instruction-note em {
+  font-size: 0.75rem;
+  color: #10B981;
+  font-style: normal;
+}
