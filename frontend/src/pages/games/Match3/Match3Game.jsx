@@ -500,9 +500,82 @@ const Match3Game = () => {
           >
             <span className="stat-label">📂 Load</span>
           </div>
+          {/* Instructions button */}
+          <div 
+            className="stat stat-button" 
+            onClick={() => setShowInstructions(true)}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">📖 Guide</span>
+          </div>
         </div>
       </div>
 
+      {/* Instructions Modal Overlay */}
+      {showInstructions && (
+        <div className="instructions-modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="instructions-modal-header">
+              <h2>🎮 Match-3 Instructions</h2>
+              <button className="modal-close" onClick={() => setShowInstructions(false)}>✕</button>
+            </div>
+            <div className="instructions-modal-content">
+              <div className="instruction-item">
+                <span className="instruction-icon">🎮</span>
+                <span className="instruction-text">Move:</span>
+                <div className="key-group">
+                  <kbd>↑</kbd>
+                  <kbd>↓</kbd>
+                  <kbd>←</kbd>
+                  <kbd>→</kbd>
+                </div>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">✅</span>
+                <span className="instruction-text">Select:</span>
+                <kbd>Enter</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🔄</span>
+                <span className="instruction-text">Swap 2 adjacent cells</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">⭐</span>
+                <span className="instruction-text">Match 3+ same colors</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">💡</span>
+                <span className="instruction-text">Hint:</span>
+                <kbd>H</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">↩️</span>
+                <span className="instruction-text">Undo:</span>
+                <kbd>Esc</kbd>
+              </div>
+              
+              <div className="instruction-divider"></div>
+              
+              <div className="instruction-item">
+                <span className="instruction-icon">💾</span>
+                <span className="instruction-text">SAVE: Save current state (grid, score, moves, time) to database</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">📂</span>
+                <span className="instruction-text">LOAD: Restore your last saved game</span>
+              </div>
+              
+              <div className="instruction-note">
+                <em>💡 Save data is synced with your account - continue on any device!</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {showCombo && combo > 1 && (
         <div className="combo-display">
           COMBO x{combo}!
@@ -559,71 +632,6 @@ const Match3Game = () => {
             onButtonPress={handleAction}
             showHint={true}
           />
-          
-          <div className="game-instructions-wrapper">
-            <button 
-              className="instructions-toggle"
-              onClick={() => setShowInstructions(!showInstructions)}
-            >
-              <span>Instructions</span>
-              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
-                {showInstructions ? '▲' : '▼'}
-              </span>
-            </button>
-            
-            {showInstructions && (
-              <div className="game-instructions">
-                <div className="instruction-item">
-                  <span className="instruction-icon">🎮</span>
-                  <span className="instruction-text">Move:</span>
-                  <div className="key-group">
-                    <kbd>↑</kbd>
-                    <kbd>↓</kbd>
-                    <kbd>←</kbd>
-                    <kbd>→</kbd>
-                  </div>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">✅</span>
-                  <span className="instruction-text">Select:</span>
-                  <kbd>Enter</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🔄</span>
-                  <span className="instruction-text">Swap 2 adjacent cells</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">⭐</span>
-                  <span className="instruction-text">Match 3+ same colors</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">💡</span>
-                  <span className="instruction-text">Hint:</span>
-                  <kbd>H</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">↩️</span>
-                  <span className="instruction-text">Undo:</span>
-                  <kbd>Esc</kbd>
-                </div>
-                
-                <div className="instruction-divider"></div>
-                
-                <div className="instruction-item">
-                  <span className="instruction-icon">💾</span>
-                  <span className="instruction-text">SAVE: Save current state (grid, score, moves, time) to database</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">📂</span>
-                  <span className="instruction-text">LOAD: Restore your last saved game</span>
-                </div>
-                
-                <div className="instruction-note">
-                  <em>💡 Save data is synced with your account - continue on any device!</em>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

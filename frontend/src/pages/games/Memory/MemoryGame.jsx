@@ -442,8 +442,78 @@ const MemoryGame = () => {
           >
             <span className="stat-label">📂 Load</span>
           </div>
+          {/* Instructions button */}
+          <div 
+            className="stat stat-button" 
+            onClick={() => setShowInstructions(true)}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">📖 Guide</span>
+          </div>
         </div>
       </div>
+
+      {/* Instructions Modal Overlay */}
+      {showInstructions && (
+        <div className="instructions-modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="instructions-modal-header">
+              <h2>🎮 Instructions</h2>
+              <button className="modal-close" onClick={() => setShowInstructions(false)}>✕</button>
+            </div>
+            <div className="instructions-modal-content">
+              <div className="instruction-item">
+                <span className="instruction-icon">🎮</span>
+                <span className="instruction-text">Move:</span>
+                <div className="key-group">
+                  <kbd>↑</kbd>
+                  <kbd>↓</kbd>
+                  <kbd>←</kbd>
+                  <kbd>→</kbd>
+                </div>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🀼</span>
+                <span className="instruction-text">Flip card:</span>
+                <kbd>Enter</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🎯</span>
+                <span className="instruction-text">Match 2 same color cards</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">💡</span>
+                <span className="instruction-text">Hint (-30 pts):</span>
+                <kbd>H</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🚪</span>
+                <span className="instruction-text">Exit game:</span>
+                <kbd>Esc</kbd>
+              </div>
+              
+              <div className="instruction-divider"></div>
+              
+              <div className="instruction-item">
+                <span className="instruction-icon">💾</span>
+                <span className="instruction-text">SAVE: Save current state (cards, score, moves, time) to database</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">📂</span>
+                <span className="instruction-text">LOAD: Restore your last saved game</span>
+              </div>
+              
+              <div className="instruction-note">
+                <em>💡 Save data is synced with your account - continue on any device!</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="game-container">
         <div className="game-board memory-board">
@@ -463,67 +533,6 @@ const MemoryGame = () => {
             onButtonPress={handleAction}
             showHint={true}
           />
-          
-          <div className="game-instructions-wrapper">
-            <button 
-              className="instructions-toggle"
-              onClick={() => setShowInstructions(!showInstructions)}
-            >
-              <span>Instructions</span>
-              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
-                {showInstructions ? '▲' : '▼'}
-              </span>
-            </button>
-            
-            {showInstructions && (
-              <div className="game-instructions">
-                <div className="instruction-item">
-                  <span className="instruction-icon">🎮</span>
-                  <span className="instruction-text">Move:</span>
-                  <div className="key-group">
-                    <kbd>↑</kbd>
-                    <kbd>↓</kbd>
-                    <kbd>←</kbd>
-                    <kbd>→</kbd>
-                  </div>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🎴</span>
-                  <span className="instruction-text">Flip card:</span>
-                  <kbd>Enter</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🎯</span>
-                  <span className="instruction-text">Match 2 same colors</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">💡</span>
-                  <span className="instruction-text">Hint (-30 pts):</span>
-                  <kbd>H</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🚪</span>
-                  <span className="instruction-text">Exit:</span>
-                  <kbd>Esc</kbd>
-                </div>
-                
-                <div className="instruction-divider"></div>
-                
-                <div className="instruction-item">
-                  <span className="instruction-icon">💾</span>
-                  <span className="instruction-text">SAVE: Save current state (cards, score, moves, time) to database</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">📂</span>
-                  <span className="instruction-text">LOAD: Restore your last saved game</span>
-                </div>
-                
-                <div className="instruction-note">
-                  <em>💡 Save data is synced with your account - continue on any device!</em>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

@@ -60,7 +60,7 @@ const FreeDrawGame = () => {
   } = useGameController({
     gridWidth: GRID_SIZE,
     gridHeight: GRID_SIZE,
-    mode: 'linear',
+    mode: 'grid', // Changed from 'linear' for 4-direction navigation
     enabled: !showPalette,
     onAction: (action) => {
       if (action === 'enter') {
@@ -253,17 +253,51 @@ const FreeDrawGame = () => {
     } catch (error) {
       console.error('Loi khi luu tranh:', error);
       console.error('Error details:', error.response?.data || error.message);
-      alert(`Khong the luu tranh: ${error.response?.data?.message || error.message || 'Loi khong xac dinh'}`);
+      alert(`Cannot save artwork: ${error.response?.data?.message || error.message || 'Unknown error'}`);
+    }
+  };
+
+  // Load saved artwork
+  const loadArt = () => {
+    try {
+      const saved = localStorage.getItem('freedraw_saved');
+      if (!saved) {
+        alert('No saved artwork found!');
+        return;
+      }
+      const saveData = JSON.parse(saved);
+      setGrid(saveData.grid);
+      if (saveData.currentColor) setCurrentColor(saveData.currentColor);
+      alert(`✅ Artwork loaded! (Saved at: ${new Date(saveData.timestamp).toLocaleString()})`);
+    } catch (error) {
+      console.error('Load error:', error);
+      alert('❌ Error loading artwork!');
+    }
+  };
+
+  // Save to localStorage (manual)
+  const handleSaveGame = () => {
+    try {
+      const saveData = {
+        grid,
+        currentColor,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('freedraw_saved', JSON.stringify(saveData));
+      alert('✅ Artwork saved successfully!');
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('❌ Error saving artwork!');
     }
   };
 
   return (
     <div className="freedraw-game">
       <div className="game-header">
-        <h1>🎨 Bang Ve Tu Do</h1>
+        <h1>🎨 Free Draw</h1>
         <div className="toolbar">
           <div className="tool-group">
-            <span className="tool-label">Mau:</span>
+            <span className="tool-label">Color:</span>
             <div
               className="color-preview"
               style={{ backgroundColor: currentColor }}
@@ -279,7 +313,7 @@ const FreeDrawGame = () => {
           </div>
           
           <div className="tool-group">
-            <button className="tool-btn" onClick={fillColor} title="To mau (Fill)">
+            <button className="tool-btn" onClick={fillColor} title="Fill">
               🪣
             </button>
             <button className="tool-btn" onClick={undo} disabled={historyIndex <= 0} title="Undo">
@@ -288,20 +322,29 @@ const FreeDrawGame = () => {
             <button className="tool-btn" onClick={redo} disabled={historyIndex >= history.length - 1} title="Redo">
               ↪️
             </button>
-            <button className="tool-btn" onClick={clearAll} title="Xoa tat ca">
+            <button className="tool-btn" onClick={clearAll} title="Clear All">
               🗑️
             </button>
-            <button className="tool-btn" onClick={saveArt} title="Luu tranh">
-              💾
+          </div>
+          
+          <div className="tool-group">
+            <button className="tool-btn save-btn" onClick={handleSaveGame} title="Save">
+              💾 Save
+            </button>
+            <button className="tool-btn load-btn" onClick={loadArt} title="Load">
+              📂 Load
+            </button>
+            <button className="tool-btn guide-btn" onClick={() => setShowInstructions(true)} title="Guide">
+              📖 Guide
             </button>
           </div>
         </div>
         
         <div className="status-bar">
           <span className={isDrawing ? 'status-active' : ''}>
-            {isDrawing ? '🖌️ Dang ve...' : '✋ Dang di chuyen'}
+            {isDrawing ? '🖌️ Drawing...' : '✋ Moving'}
           </span>
-          <span>Vi tri: ({cursor.x}, {cursor.y})</span>
+          <span>Position: ({cursor.x}, {cursor.y})</span>
         </div>
       </div>
 
@@ -363,52 +406,66 @@ const FreeDrawGame = () => {
             onButtonPress={handleAction}
             showHint={true}
           />
-          
-          <div className="game-instructions-wrapper">
-            <button 
-              className="instructions-toggle"
-              onClick={() => setShowInstructions(!showInstructions)}
-            >
-              <span>Huong dan</span>
-              <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
-                {showInstructions ? '▲' : '▼'}
-              </span>
-            </button>
-            
-            {showInstructions && (
-              <div className="game-instructions">
-                <div className="instruction-item">
-                  <span className="instruction-icon">🕹️</span>
-                  <span className="instruction-text">Di chuyen:</span>
-                  <div className="key-group">
-                    <kbd>←</kbd>
-                    <kbd>→</kbd>
-                  </div>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🖌️</span>
-                  <span className="instruction-text">Ve/Dung:</span>
-                  <kbd>Enter</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🎨</span>
-                  <span className="instruction-text">Chon mau:</span>
-                  <kbd>H</kbd>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🖥️</span>
-                  <span className="instruction-text">Click vao o de ve</span>
-                </div>
-                <div className="instruction-item">
-                  <span className="instruction-icon">🚪</span>
-                  <span className="instruction-text">Thoat:</span>
-                  <kbd>Esc</kbd>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Instructions Modal Overlay */}
+      {showInstructions && (
+        <div className="instructions-modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="instructions-modal-header">
+              <h2>🎨 Free Draw Instructions</h2>
+              <button className="modal-close" onClick={() => setShowInstructions(false)}>✕</button>
+            </div>
+            <div className="instructions-modal-content">
+              <div className="instruction-item">
+                <span className="instruction-icon">🎮</span>
+                <span className="instruction-text">Move:</span>
+                <div className="key-group">
+                  <kbd>↑</kbd>
+                  <kbd>↓</kbd>
+                  <kbd>←</kbd>
+                  <kbd>→</kbd>
+                </div>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🖌️</span>
+                <span className="instruction-text">Draw/Stop:</span>
+                <kbd>Enter</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🎨</span>
+                <span className="instruction-text">Color Palette:</span>
+                <kbd>H</kbd>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🖥️</span>
+                <span className="instruction-text">Click on cells to draw directly</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">🚪</span>
+                <span className="instruction-text">Exit:</span>
+                <kbd>Esc</kbd>
+              </div>
+              
+              <div className="instruction-divider"></div>
+              
+              <div className="instruction-item">
+                <span className="instruction-icon">💾</span>
+                <span className="instruction-text">SAVE: Save your artwork to browser storage</span>
+              </div>
+              <div className="instruction-item">
+                <span className="instruction-icon">📂</span>
+                <span className="instruction-text">LOAD: Restore your last saved artwork</span>
+              </div>
+              
+              <div className="instruction-note">
+                <em>💡 Your artwork is saved locally - continue where you left off!</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,16 @@
   min-height: calc(100vh - 140px);
 }
 
+/* Header must allow dropdown overflow */
+.memory-game .game-header {
+  overflow: visible;
+}
+
+.memory-game .game-stats {
+  overflow: visible;
+  position: relative;
+}
+
 .memory-board .matrix-cell {
   border-radius: 8px !important;
   transition: all 0.3s ease;
@@ -219,16 +229,56 @@
   gap: 4px;
 }
 
-/* Instructions wrapper - wider to fit content */
+/* Instructions wrapper - fixed width */
 .memory-game .game-instructions-wrapper {
-  min-width: 280px;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+/* Header Instructions - dropdown style */
+.memory-game .header-instructions {
+  position: relative;
+  width: auto;
+  min-width: 120px;
+}
+
+.memory-game .header-instructions .instructions-toggle {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.memory-game .header-instructions .game-instructions {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  width: 350px;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .memory-game .game-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   width: auto;
   position: sticky;
   top: 100px;
   align-self: flex-start;
+}
+
+/* GameControls fixed width */
+.memory-game .game-controls {
+  width: 220px;
+  flex-shrink: 0;
 }
 
 /* Instruction divider and note */
@@ -252,4 +302,83 @@
   font-size: 0.75rem;
   color: #10B981;
   font-style: normal;
+}
+
+/* Instructions Modal Overlay */
+.instructions-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.instructions-modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.instructions-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.instructions-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.instructions-modal-content {
+  padding: 20px;
+}
+
+.instructions-modal-content .instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.instructions-modal-content .instruction-icon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+}
+
+.instructions-modal-content .instruction-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }

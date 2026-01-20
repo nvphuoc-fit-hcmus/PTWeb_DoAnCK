@@ -150,13 +150,19 @@
 /* Sidebar */
 .game-sidebar {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 15px;
   align-items: flex-start;
-  width: 450px;
+  width: 300px;
   flex-shrink: 0;
   position: sticky;
   top: 100px;
+}
+
+/* GameControls fixed width */
+.game-sidebar .game-controls {
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* Instructions wrapper */
@@ -167,8 +173,8 @@
   border-radius: 8px;
   border: 1px solid var(--border-color);
   overflow: hidden;
-  min-width: 280px;
-  align-self: flex-start;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* Toggle button */
@@ -388,4 +394,83 @@ kbd {
   .stat-value {
     font-size: 1.25rem;
   }
+}
+
+/* Instructions Modal Overlay */
+.instructions-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.instructions-modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.instructions-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.instructions-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.instructions-modal-content {
+  padding: 20px;
+}
+
+.instructions-modal-content .instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.instructions-modal-content .instruction-icon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+}
+
+.instructions-modal-content .instruction-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
