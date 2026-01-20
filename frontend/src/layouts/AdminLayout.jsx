@@ -121,7 +121,7 @@ const AdminLayout = () => {
 
           <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
             <button className="theme-toggle" onClick={toggleTheme}>
-              {isDarkMode ? "☀️" : "🌙"}
+              {isDarkMode ? "🌙" : "☀️"}
             </button>
             <span style={{ color: "var(--text-secondary)" }}>
               👤 {user?.display_name}

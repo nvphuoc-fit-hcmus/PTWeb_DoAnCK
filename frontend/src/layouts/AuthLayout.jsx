@@ -21,7 +21,7 @@ const AuthLayout = () => {
         onClick={toggleTheme}
         style={{ position: "absolute", top: 20, right: 20 }}
       >
-        {isDarkMode ? "☀️" : "🌙"}
+        {isDarkMode ? "🌙" : "☀️"}
       </button>
       <Outlet />
     </div>

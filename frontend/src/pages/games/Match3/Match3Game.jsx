@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MatrixBoard, GameControls } from '../../../components/game';
+import GameRating from '../../../components/game/GameRating';
 import { useGameController } from '../../../hooks';
 import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
@@ -176,6 +177,7 @@ const Match3Game = () => {
   const [combo, setCombo] = useState(0);
   const [showCombo, setShowCombo] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showRating, setShowRating] = useState(false);
   
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -366,6 +368,61 @@ const Match3Game = () => {
     }
   };
 
+  // Save game manually
+  const handleSaveGame = () => {
+    try {
+      const saveData = {
+        grid,
+        score,
+        moves,
+        timeElapsed,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('match3_saved', JSON.stringify(saveData));
+      alert('✅ Đã lưu game!');
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('❌ Lỗi khi lưu game!');
+    }
+  };
+
+  // Load saved game
+  const handleLoadGame = () => {
+    try {
+      const saved = localStorage.getItem('match3_saved');
+      if (!saved) {
+        alert('Không có game đã lưu!');
+        return;
+      }
+      
+      const saveData = JSON.parse(saved);
+      setGrid(saveData.grid);
+      setScore(saveData.score);
+      setMoves(saveData.moves);
+      setTimeElapsed(saveData.timeElapsed);
+      setGameOver(false);
+      setIsWin(false);
+      setSelectedCell(null);
+      setHint(null);
+      
+      alert(`✅ Đã tải game! (Lưu lúc: ${new Date(saveData.timestamp).toLocaleString()})`);
+    } catch (error) {
+      console.error('Load error:', error);
+      alert('❌ Lỗi khi tải game!');
+    }
+  };
+
+  // Submit rating
+  const handleSubmitRating = async ({ rating, comment }) => {
+    try {
+      await gameAPI.submitReview('66666666-6666-6666-6666-666666666666', rating, comment);
+      alert('✅ Cảm ơn bạn đã đánh giá!');
+    } catch (error) {
+      console.error('Rating error:', error);
+      throw error;
+    }
+  };
+
   // Choi lai
   const restartGame = () => {
     setGrid(createInitialGrid());
@@ -478,6 +535,81 @@ const Match3Game = () => {
             showHint={true}
           />
           
+          {/* Save/Load Buttons - Redesigned */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            marginBottom: '15px',
+            padding: '10px',
+            background: 'var(--bg-tertiary)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+          }}>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: 'var(--text-muted)',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '4px',
+            }}>
+              📁 Quản lý Game
+            </div>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleSaveGame}
+              disabled={gameOver}
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                background: gameOver ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                boxShadow: gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!gameOver) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              💾 Lưu Game
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleLoadGame}
+              style={{ 
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                color: '#fff',
+                border: 'none',
+                boxShadow: '0 4px 15px rgba(245, 87, 108, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(245, 87, 108, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(245, 87, 108, 0.4)';
+              }}
+            >
+              📂 Tải Game Đã Lưu
+            </button>
+          </div>
+          
           <div className="game-instructions-wrapper">
             <button 
               className="instructions-toggle"
@@ -551,12 +683,29 @@ const Match3Game = () => {
               <button className="btn btn-primary" onClick={restartGame}>
                 Choi lai
               </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowRating(true)}
+                style={{ background: '#FFD700', color: '#000' }}
+              >
+                ⭐ Đánh giá
+              </button>
               <button className="btn btn-secondary" onClick={() => navigate('/games')}>
                 Thoat
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRating && (
+        <GameRating
+          gameId="66666666-6666-6666-6666-666666666666"
+          gameName="Match-3"
+          onSubmit={handleSubmitRating}
+          onClose={() => setShowRating(false)}
+        />
       )}
     </div>
   );
