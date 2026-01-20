@@ -22,10 +22,69 @@ const GameControls = ({
 
   return (
     <div className={classnames('game-controls', className)}>
-      <div className="controls-row controls-row--top">
+      {/* Navigation Cluster - D-pad style */}
+      <div className="navigation-cluster">
+        {/* Up button - top position */}
+        <button
+          className={classnames('control-btn control-btn--up', {
+            'control-btn--pressed': pressedKeys.up,
+          })}
+          onClick={() => handleClick('up')}
+        >
+          <span className="control-icon">▲</span>
+          <span className="control-label">Up</span>
+        </button>
+
+        {/* Middle row: Left + Select + Right */}
+        <div className="nav-middle-row">
+          <button
+            className={classnames('control-btn control-btn--left', {
+              'control-btn--pressed': pressedKeys.left,
+            })}
+            onClick={() => handleClick('left')}
+          >
+            <span className="control-icon">◀</span>
+            <span className="control-label">Left</span>
+          </button>
+
+          <button
+            className={classnames('control-btn control-btn--enter', {
+              'control-btn--pressed': pressedKeys.enter,
+            })}
+            onClick={() => handleClick('enter')}
+          >
+            <span className="control-icon">✓</span>
+            <span className="control-label">Select</span>
+          </button>
+
+          <button
+            className={classnames('control-btn control-btn--right', {
+              'control-btn--pressed': pressedKeys.right,
+            })}
+            onClick={() => handleClick('right')}
+          >
+            <span className="control-icon">▶</span>
+            <span className="control-label">Right</span>
+          </button>
+        </div>
+
+        {/* Down button - bottom position */}
+        <button
+          className={classnames('control-btn control-btn--down', {
+            'control-btn--pressed': pressedKeys.down,
+          })}
+          onClick={() => handleClick('down')}
+        >
+          <span className="control-icon">▼</span>
+          <span className="control-label">Down</span>
+        </button>
+      </div>
+
+      {/* Function Buttons - Pill shaped, horizontal row */}
+      <div className="function-buttons">
         {showHint && (
           <button
-            className={classnames('control-btn control-btn--hint', {
+            className={classnames('control-btn control-btn--hint control-btn--pill', {
               'control-btn--pressed': pressedKeys.hint,
             })}
             onClick={() => handleClick('hint')}
@@ -34,54 +93,21 @@ const GameControls = ({
             <span className="control-label">Hint (H)</span>
           </button>
         )}
-      </div>
-
-      <div className="controls-row controls-row--middle">
+        
         <button
-          className={classnames('control-btn control-btn--left', {
-            'control-btn--pressed': pressedKeys.left,
-          })}
-          onClick={() => handleClick('left')}
-        >
-          <span className="control-icon">◀</span>
-          <span className="control-label">Left</span>
-        </button>
-
-        <button
-          className={classnames('control-btn control-btn--enter', {
-            'control-btn--pressed': pressedKeys.enter,
-          })}
-          onClick={() => handleClick('enter')}
-        >
-          <span className="control-icon">✓</span>
-          <span className="control-label">Enter</span>
-        </button>
-
-        <button
-          className={classnames('control-btn control-btn--right', {
-            'control-btn--pressed': pressedKeys.right,
-          })}
-          onClick={() => handleClick('right')}
-        >
-          <span className="control-icon">▶</span>
-          <span className="control-label">Right</span>
-        </button>
-      </div>
-
-      <div className="controls-row controls-row--bottom">
-        <button
-          className={classnames('control-btn control-btn--back', {
+          className={classnames('control-btn control-btn--back control-btn--pill', {
             'control-btn--pressed': pressedKeys.back,
           })}
           onClick={() => handleClick('back')}
         >
           <span className="control-icon">↩</span>
-          <span className="control-label">Back (Esc)</span>
+          <span className="control-label">Undo (Esc)</span>
         </button>
       </div>
 
+      {/* Help text */}
       <div className="controls-help">
-        <p>Dieu khien: ← → Enter Esc H</p>
+        <p>Controls: ← ↑ ↓ → Enter Esc H</p>
       </div>
     </div>
   );

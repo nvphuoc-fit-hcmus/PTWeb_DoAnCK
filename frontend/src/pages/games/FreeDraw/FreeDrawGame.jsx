@@ -241,16 +241,19 @@ const FreeDrawGame = () => {
     }
     
     try {
-      await gameAPI.saveGame({
-        game_id: '77777777-7777-7777-7777-777777777777', // Free Draw ID
+      console.log('Saving artwork...', { user, grid });
+      const result = await gameAPI.saveGame({
+        game_id: '00000000-0000-0000-0000-000000000000', // Free Draw ID (phai khop voi database)
         state: JSON.stringify({ grid }),
         score: 0,
         time_elapsed: 0,
       });
+      console.log('Save successful:', result);
       alert('Da luu tranh thanh cong!');
     } catch (error) {
       console.error('Loi khi luu tranh:', error);
-      alert('Khong the luu tranh');
+      console.error('Error details:', error.response?.data || error.message);
+      alert(`Khong the luu tranh: ${error.response?.data?.message || error.message || 'Loi khong xac dinh'}`);
     }
   };
 

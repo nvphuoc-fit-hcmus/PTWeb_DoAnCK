@@ -21,7 +21,8 @@ const GameRating = ({ gameId, gameName, onSubmit, onClose }) => {
       onClose();
     } catch (error) {
       console.error('Submit rating error:', error);
-      alert('Lỗi khi gửi đánh giá. Vui lòng thử lại!');
+      const errorMsg = error.response?.data?.message || error.message || 'Lỗi khi gửi đánh giá';
+      alert(`❌ ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }

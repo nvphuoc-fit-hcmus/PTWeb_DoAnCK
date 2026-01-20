@@ -44,6 +44,25 @@
   color: var(--primary-color);
 }
 
+.stat-button {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff !important;
+  justify-content: center; /* Center text vertically */
+}
+
+.stat-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-button .stat-label {
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0; /* Remove any default margin */
+}
+
 /* Combo display */
 .combo-display {
   position: fixed;
@@ -146,7 +165,7 @@
   border-radius: 8px;
   border: 1px solid var(--border-color);
   overflow: hidden;
-  min-width: 200px;
+  min-width: 280px;
   align-self: flex-start;
 }
 

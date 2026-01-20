@@ -10,12 +10,12 @@ import './Match3Game.css';
 // Cau hinh game
 const GRID_SIZE = 8; // 8x8
 const COLORS = [
-  '#FF4757', // Do tuoi (Red)
-  '#1E90FF', // Xanh duong (Blue)
-  '#FFD700', // Vang nang (Gold)
-  '#2ECC71', // Xanh la (Green)
-  '#9B59B6', // Tim (Purple)
-  '#FF6348', // Cam (Orange)
+  '#E53935', // Red (bright red)
+  '#1E88E5', // Blue (bright blue)
+  '#FDD835', // Yellow (bright yellow)
+  '#43A047', // Green (bright green)
+  '#8E24AA', // Purple (bright purple)
+  '#00ACC1', // Cyan (teal - instead of orange)
 ];
 const TARGET_SCORE = 1000; // Diem muc tieu de thang
 
@@ -191,7 +191,7 @@ const Match3Game = () => {
   } = useGameController({
     gridWidth: GRID_SIZE,
     gridHeight: GRID_SIZE,
-    mode: 'linear',
+    mode: 'grid', // Changed from 'linear' to support Up/Down navigation
     enabled: !isAnimating && !gameOver,
     onAction: (action) => {
       if (action === 'enter') {
@@ -379,10 +379,10 @@ const Match3Game = () => {
         timestamp: new Date().toISOString(),
       };
       localStorage.setItem('match3_saved', JSON.stringify(saveData));
-      alert('✅ Đã lưu game!');
+      alert('✅ Game saved successfully!');
     } catch (error) {
       console.error('Save error:', error);
-      alert('❌ Lỗi khi lưu game!');
+      alert('❌ Error saving game!');
     }
   };
 
@@ -391,7 +391,7 @@ const Match3Game = () => {
     try {
       const saved = localStorage.getItem('match3_saved');
       if (!saved) {
-        alert('Không có game đã lưu!');
+        alert('No saved game found!');
         return;
       }
       
@@ -405,18 +405,18 @@ const Match3Game = () => {
       setSelectedCell(null);
       setHint(null);
       
-      alert(`✅ Đã tải game! (Lưu lúc: ${new Date(saveData.timestamp).toLocaleString()})`);
+      alert(`✅ Game loaded! (Saved at: ${new Date(saveData.timestamp).toLocaleString()})`);
     } catch (error) {
       console.error('Load error:', error);
-      alert('❌ Lỗi khi tải game!');
+      alert('❌ Error loading game!');
     }
   };
 
   // Submit rating
   const handleSubmitRating = async ({ rating, comment }) => {
     try {
-      await gameAPI.submitReview('66666666-6666-6666-6666-666666666666', rating, comment);
-      alert('✅ Cảm ơn bạn đã đánh giá!');
+      await gameAPI.submitReview('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', rating, comment);
+      alert('✅ Thank you for your rating!');
     } catch (error) {
       console.error('Rating error:', error);
       throw error;
@@ -464,16 +464,41 @@ const Match3Game = () => {
         <h1>🍬 Match-3</h1>
         <div className="game-stats">
           <div className="stat">
-            <span className="stat-label">Diem</span>
+            <span className="stat-label">Score</span>
             <span className="stat-value">{score}/{TARGET_SCORE}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Luot</span>
+            <span className="stat-label">Moves</span>
             <span className="stat-value">{moves}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Thoi gian</span>
+            <span className="stat-label">Time</span>
             <span className="stat-value">{formatTime(timeElapsed)}</span>
+          </div>
+          
+          {/* Save/Load as stat boxes */}
+          <div 
+            className="stat stat-button" 
+            onClick={handleSaveGame}
+            style={{ 
+              cursor: gameOver ? 'not-allowed' : 'pointer',
+              opacity: gameOver ? 0.5 : 1,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">💾 Save</span>
+          </div>
+          <div 
+            className="stat stat-button" 
+            onClick={handleLoadGame}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">📂 Load</span>
           </div>
         </div>
       </div>
@@ -535,87 +560,12 @@ const Match3Game = () => {
             showHint={true}
           />
           
-          {/* Save/Load Buttons - Redesigned */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            marginBottom: '15px',
-            padding: '10px',
-            background: 'var(--bg-tertiary)',
-            borderRadius: '12px',
-            border: '1px solid var(--border-color)',
-          }}>
-            <div style={{ 
-              fontSize: '0.75rem', 
-              color: 'var(--text-muted)',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '4px',
-            }}>
-              📁 Quản lý Game
-            </div>
-            <button 
-              className="btn btn-primary" 
-              onClick={handleSaveGame}
-              disabled={gameOver}
-              style={{ 
-                width: '100%',
-                padding: '12px',
-                fontSize: '0.95rem',
-                fontWeight: '600',
-                background: gameOver ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                boxShadow: gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!gameOver) {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = gameOver ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)';
-              }}
-            >
-              💾 Lưu Game
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={handleLoadGame}
-              style={{ 
-                width: '100%',
-                padding: '12px',
-                fontSize: '0.95rem',
-                fontWeight: '600',
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                color: '#fff',
-                border: 'none',
-                boxShadow: '0 4px 15px rgba(245, 87, 108, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(245, 87, 108, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(245, 87, 108, 0.4)';
-              }}
-            >
-              📂 Tải Game Đã Lưu
-            </button>
-          </div>
-          
           <div className="game-instructions-wrapper">
             <button 
               className="instructions-toggle"
               onClick={() => setShowInstructions(!showInstructions)}
             >
-              <span>Huong dan</span>
+              <span>Instructions</span>
               <span className={`arrow ${showInstructions ? 'up' : 'down'}`}>
                 {showInstructions ? '▲' : '▼'}
               </span>
@@ -624,34 +574,36 @@ const Match3Game = () => {
             {showInstructions && (
               <div className="game-instructions">
                 <div className="instruction-item">
-                  <span className="instruction-icon">🕹️</span>
-                  <span className="instruction-text">Di chuyen:</span>
+                  <span className="instruction-icon">🎮</span>
+                  <span className="instruction-text">Move:</span>
                   <div className="key-group">
+                    <kbd>↑</kbd>
+                    <kbd>↓</kbd>
                     <kbd>←</kbd>
                     <kbd>→</kbd>
                   </div>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">✅</span>
-                  <span className="instruction-text">Chon o:</span>
+                  <span className="instruction-text">Select:</span>
                   <kbd>Enter</kbd>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">🔄</span>
-                  <span className="instruction-text">Hoan doi 2 o ke nhau</span>
+                  <span className="instruction-text">Swap 2 adjacent cells</span>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">⭐</span>
-                  <span className="instruction-text">Ghep 3+ o cung mau</span>
+                  <span className="instruction-text">Match 3+ same colors</span>
                 </div>
                 <div className="instruction-item">
                   <span className="instruction-icon">💡</span>
-                  <span className="instruction-text">Goi y:</span>
+                  <span className="instruction-text">Hint:</span>
                   <kbd>H</kbd>
                 </div>
                 <div className="instruction-item">
-                  <span className="instruction-icon">🚪</span>
-                  <span className="instruction-text">Thoat:</span>
+                  <span className="instruction-icon">↩️</span>
+                  <span className="instruction-text">Undo:</span>
                   <kbd>Esc</kbd>
                 </div>
               </div>
@@ -664,34 +616,34 @@ const Match3Game = () => {
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
-            <h2>{isWin ? '🎉 Chien thang!' : '😢 Het luot!'}</h2>
+            <h2>{isWin ? '🎉 Victory!' : '😢 Game Over!'}</h2>
             <div className="final-stats">
               <div className="final-stat">
-                <span>Diem so</span>
+                <span>Score</span>
                 <strong>{score}</strong>
               </div>
               <div className="final-stat">
-                <span>Luot con lai</span>
+                <span>Moves Left</span>
                 <strong>{moves}</strong>
               </div>
               <div className="final-stat">
-                <span>Thoi gian</span>
+                <span>Time</span>
                 <strong>{formatTime(timeElapsed)}</strong>
               </div>
             </div>
             <div className="game-over-buttons">
               <button className="btn btn-primary" onClick={restartGame}>
-                Choi lai
+                Play Again
               </button>
               <button 
                 className="btn btn-secondary" 
                 onClick={() => setShowRating(true)}
                 style={{ background: '#FFD700', color: '#000' }}
               >
-                ⭐ Đánh giá
+                ⭐ Rate Game
               </button>
               <button className="btn btn-secondary" onClick={() => navigate('/games')}>
-                Thoat
+                Exit
               </button>
             </div>
           </div>
@@ -701,7 +653,7 @@ const Match3Game = () => {
       {/* Rating Modal */}
       {showRating && (
         <GameRating
-          gameId="66666666-6666-6666-6666-666666666666"
+          gameId="eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
           gameName="Match-3"
           onSubmit={handleSubmitRating}
           onClose={() => setShowRating(false)}
