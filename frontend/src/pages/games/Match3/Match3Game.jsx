@@ -7,9 +7,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
 import './Match3Game.css';
 
-// Cau hinh game
-const GRID_SIZE = 8; // 8x8
-const COLORS = [
+// Default config
+const DEFAULT_GRID_SIZE = 8; // 8x8
+const DEFAULT_COLORS = [
   '#E53935', // Red (bright red)
   '#1E88E5', // Blue (bright blue)
   '#FDD835', // Yellow (bright yellow)
@@ -17,158 +17,52 @@ const COLORS = [
   '#8E24AA', // Purple (bright purple)
   '#00ACC1', // Cyan (teal - instead of orange)
 ];
-const TARGET_SCORE = 1000; // Diem muc tieu de thang
-
-// Tao mau ngau nhien
-const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
-
-// Tao grid ban dau (dam bao khong co match san)
-const createInitialGrid = () => {
-  const grid = [];
-  for (let y = 0; y < GRID_SIZE; y++) {
-    const row = [];
-    for (let x = 0; x < GRID_SIZE; x++) {
-      let color;
-      do {
-        color = getRandomColor();
-      } while (
-        // Kiem tra khong co 3 o cung mau lien tiep theo hang ngang
-        (x >= 2 && row[x - 1] === color && row[x - 2] === color) ||
-        // Kiem tra khong co 3 o cung mau lien tiep theo hang doc
-        (y >= 2 && grid[y - 1][x] === color && grid[y - 2][x] === color)
-      );
-      row.push(color);
-    }
-    grid.push(row);
-  }
-  return grid;
-};
-
-// Kiem tra va tim cac o match
-const findMatches = (grid) => {
-  const matches = new Set();
-  
-  // Kiem tra hang ngang
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE - 2; x++) {
-      const color = grid[y][x];
-      if (color && color === grid[y][x + 1] && color === grid[y][x + 2]) {
-        matches.add(`${x},${y}`);
-        matches.add(`${x + 1},${y}`);
-        matches.add(`${x + 2},${y}`);
-        // Kiem tra them neu co 4 hoac 5 o
-        if (x + 3 < GRID_SIZE && color === grid[y][x + 3]) {
-          matches.add(`${x + 3},${y}`);
-          if (x + 4 < GRID_SIZE && color === grid[y][x + 4]) {
-            matches.add(`${x + 4},${y}`);
-          }
-        }
-      }
-    }
-  }
-  
-  // Kiem tra hang doc
-  for (let x = 0; x < GRID_SIZE; x++) {
-    for (let y = 0; y < GRID_SIZE - 2; y++) {
-      const color = grid[y][x];
-      if (color && color === grid[y + 1][x] && color === grid[y + 2][x]) {
-        matches.add(`${x},${y}`);
-        matches.add(`${x},${y + 1}`);
-        matches.add(`${x},${y + 2}`);
-        // Kiem tra them neu co 4 hoac 5 o
-        if (y + 3 < GRID_SIZE && color === grid[y + 3][x]) {
-          matches.add(`${x},${y + 3}`);
-          if (y + 4 < GRID_SIZE && color === grid[y + 4][x]) {
-            matches.add(`${x},${y + 4}`);
-          }
-        }
-      }
-    }
-  }
-  
-  return Array.from(matches).map((pos) => {
-    const [x, y] = pos.split(',').map(Number);
-    return { x, y };
-  });
-};
-
-// Xoa cac o match va cho rot xuong
-const removeMatchesAndDrop = (grid, matches) => {
-  const newGrid = grid.map((row) => [...row]);
-  
-  // Danh dau cac o can xoa
-  matches.forEach(({ x, y }) => {
-    newGrid[y][x] = null;
-  });
-  
-  // Cho cac o rot xuong
-  for (let x = 0; x < GRID_SIZE; x++) {
-    let writePos = GRID_SIZE - 1;
-    for (let y = GRID_SIZE - 1; y >= 0; y--) {
-      if (newGrid[y][x] !== null) {
-        if (y !== writePos) {
-          newGrid[writePos][x] = newGrid[y][x];
-          newGrid[y][x] = null;
-        }
-        writePos--;
-      }
-    }
-    // Dien mau moi vao cac o trong o tren
-    for (let y = writePos; y >= 0; y--) {
-      newGrid[y][x] = getRandomColor();
-    }
-  }
-  
-  return newGrid;
-};
-
-// Hoan doi 2 o
-const swapCells = (grid, pos1, pos2) => {
-  const newGrid = grid.map((row) => [...row]);
-  const temp = newGrid[pos1.y][pos1.x];
-  newGrid[pos1.y][pos1.x] = newGrid[pos2.y][pos2.x];
-  newGrid[pos2.y][pos2.x] = temp;
-  return newGrid;
-};
-
-// Kiem tra 2 o co ke nhau khong
-const areAdjacent = (pos1, pos2) => {
-  const dx = Math.abs(pos1.x - pos2.x);
-  const dy = Math.abs(pos1.y - pos2.y);
-  return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
-};
-
-// Tim goi y (mot cap o co the hoan doi de tao match)
-const findHint = (grid) => {
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
-      // Thu hoan doi voi o ben phai
-      if (x < GRID_SIZE - 1) {
-        const testGrid = swapCells(grid, { x, y }, { x: x + 1, y });
-        if (findMatches(testGrid).length > 0) {
-          return [{ x, y }, { x: x + 1, y }];
-        }
-      }
-      // Thu hoan doi voi o ben duoi
-      if (y < GRID_SIZE - 1) {
-        const testGrid = swapCells(grid, { x, y }, { x, y: y + 1 });
-        if (findMatches(testGrid).length > 0) {
-          return [{ x, y }, { x, y: y + 1 }];
-        }
-      }
-    }
-  }
-  return null;
-};
+const DEFAULT_TARGET_SCORE = 1000; // Diem muc tieu de thang
+const DEFAULT_MOVE_LIMIT = 30;
+const GAME_SLUG = 'match-3';
 
 const Match3Game = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // Config state - loaded from API
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [colors, setColors] = useState(DEFAULT_COLORS);
+  const [targetScore, setTargetScore] = useState(DEFAULT_TARGET_SCORE);
+  const [moveLimit, setMoveLimit] = useState(DEFAULT_MOVE_LIMIT);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  const [gameId, setGameId] = useState(null);
+
+  // Tao mau ngau nhien
+  const getRandomColor = useCallback(() => colors[Math.floor(Math.random() * colors.length)], [colors]);
+
+  // Tao grid ban dau (dam bao khong co match san)
+  const createInitialGrid = useCallback((size = gridSize, colorList = colors) => {
+    const getColor = () => colorList[Math.floor(Math.random() * colorList.length)];
+    const grid = [];
+    for (let y = 0; y < size; y++) {
+      const row = [];
+      for (let x = 0; x < size; x++) {
+        let color;
+        do {
+          color = getColor();
+        } while (
+          // Kiem tra khong co 3 o cung mau lien tiep theo hang ngang
+          (x >= 2 && row[x - 1] === color && row[x - 2] === color) ||
+          // Kiem tra khong co 3 o cung mau lien tiep theo hang doc
+          (y >= 2 && grid[y - 1][x] === color && grid[y - 2][x] === color)
+        );
+        row.push(color);
+      }
+      grid.push(row);
+    }
+    return grid;
+  }, [gridSize, colors]);
+
   // Game state
-  const [grid, setGrid] = useState(() => createInitialGrid());
+  const [grid, setGrid] = useState([]);
   const [score, setScore] = useState(0);
-  const [moves, setMoves] = useState(30);
+  const [moves, setMoves] = useState(DEFAULT_MOVE_LIMIT);
   const [selectedCell, setSelectedCell] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -183,16 +77,62 @@ const Match3Game = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef(null);
 
+  // Load config from API
+  useEffect(() => {
+    const initGame = async () => {
+      try {
+        const res = await gameAPI.getGame(GAME_SLUG);
+        if (res.data.data) {
+          const gameData = res.data.data;
+          setGameId(gameData.id);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_GRID_SIZE;
+          const colorList = config?.colors || DEFAULT_COLORS;
+          const target = config?.targetScore || DEFAULT_TARGET_SCORE;
+          const limit = config?.moveLimit || DEFAULT_MOVE_LIMIT;
+          
+          setGridSize(size);
+          setColors(colorList);
+          setTargetScore(target);
+          setMoveLimit(limit);
+          setMoves(limit);
+          setGrid(createInitialGrid(size, colorList));
+          setConfigLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching game info:", error);
+        // Fallback to defaults
+        setGrid(createInitialGrid(DEFAULT_GRID_SIZE, DEFAULT_COLORS));
+        setMoves(DEFAULT_MOVE_LIMIT);
+        setConfigLoaded(true);
+      }
+    };
+    
+    initGame();
+  }, []);
+
   // Game controller
   const {
     cursor,
     pressedKeys,
     handleAction,
   } = useGameController({
-    gridWidth: GRID_SIZE,
-    gridHeight: GRID_SIZE,
+    gridWidth: gridSize,
+    gridHeight: gridSize,
     mode: 'grid', // Changed from 'linear' to support Up/Down navigation
-    enabled: !isAnimating && !gameOver,
+    enabled: !isAnimating && !gameOver && configLoaded,
     onAction: (action) => {
       if (action === 'enter') {
         handleCellSelect();
@@ -206,20 +146,142 @@ const Match3Game = () => {
 
   // Timer effect
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimeElapsed((prev) => prev + 1);
-    }, 1000);
+    if (configLoaded) {
+      timerRef.current = setInterval(() => {
+        setTimeElapsed((prev) => prev + 1);
+      }, 1000);
+    }
     
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
+  }, [configLoaded]);
+
+  // Kiem tra va tim cac o match
+  const findMatches = useCallback((grid) => {
+    const matches = new Set();
+    const size = grid.length;
+    
+    // Kiem tra hang ngang
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size - 2; x++) {
+        const color = grid[y][x];
+        if (color && color === grid[y][x + 1] && color === grid[y][x + 2]) {
+          matches.add(`${x},${y}`);
+          matches.add(`${x + 1},${y}`);
+          matches.add(`${x + 2},${y}`);
+          // Kiem tra them neu co 4 hoac 5 o
+          if (x + 3 < size && color === grid[y][x + 3]) {
+            matches.add(`${x + 3},${y}`);
+            if (x + 4 < size && color === grid[y][x + 4]) {
+              matches.add(`${x + 4},${y}`);
+            }
+          }
+        }
+      }
+    }
+    
+    // Kiem tra hang doc
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size - 2; y++) {
+        const color = grid[y][x];
+        if (color && color === grid[y + 1][x] && color === grid[y + 2][x]) {
+          matches.add(`${x},${y}`);
+          matches.add(`${x},${y + 1}`);
+          matches.add(`${x},${y + 2}`);
+          // Kiem tra them neu co 4 hoac 5 o
+          if (y + 3 < size && color === grid[y + 3][x]) {
+            matches.add(`${x},${y + 3}`);
+            if (y + 4 < size && color === grid[y + 4][x]) {
+              matches.add(`${x},${y + 4}`);
+            }
+          }
+        }
+      }
+    }
+    
+    return Array.from(matches).map((pos) => {
+      const [x, y] = pos.split(',').map(Number);
+      return { x, y };
+    });
   }, []);
+
+  // Xoa cac o match va cho rot xuong
+  const removeMatchesAndDrop = useCallback((grid, matches) => {
+    const size = grid.length;
+    const newGrid = grid.map((row) => [...row]);
+    
+    // Danh dau cac o can xoa
+    matches.forEach(({ x, y }) => {
+      newGrid[y][x] = null;
+    });
+    
+    // Cho cac o rot xuong
+    for (let x = 0; x < size; x++) {
+      let writePos = size - 1;
+      for (let y = size - 1; y >= 0; y--) {
+        if (newGrid[y][x] !== null) {
+          if (y !== writePos) {
+            newGrid[writePos][x] = newGrid[y][x];
+            newGrid[y][x] = null;
+          }
+          writePos--;
+        }
+      }
+      // Dien mau moi vao cac o trong o tren
+      for (let y = writePos; y >= 0; y--) {
+        newGrid[y][x] = getRandomColor();
+      }
+    }
+    
+    return newGrid;
+  }, [getRandomColor]);
+
+  // Hoan doi 2 o
+  const swapCells = useCallback((grid, pos1, pos2) => {
+    const newGrid = grid.map((row) => [...row]);
+    const temp = newGrid[pos1.y][pos1.x];
+    newGrid[pos1.y][pos1.x] = newGrid[pos2.y][pos2.x];
+    newGrid[pos2.y][pos2.x] = temp;
+    return newGrid;
+  }, []);
+
+  // Kiem tra 2 o co ke nhau khong
+  const areAdjacent = useCallback((pos1, pos2) => {
+    const dx = Math.abs(pos1.x - pos2.x);
+    const dy = Math.abs(pos1.y - pos2.y);
+    return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+  }, []);
+
+  // Tim goi y (mot cap o co the hoan doi de tao match)
+  const findHint = useCallback((grid) => {
+    const size = grid.length;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        // Thu hoan doi voi o ben phai
+        if (x < size - 1) {
+          const testGrid = swapCells(grid, { x, y }, { x: x + 1, y });
+          if (findMatches(testGrid).length > 0) {
+            return [{ x, y }, { x: x + 1, y }];
+          }
+        }
+        // Thu hoan doi voi o ben duoi
+        if (y < size - 1) {
+          const testGrid = swapCells(grid, { x, y }, { x, y: y + 1 });
+          if (findMatches(testGrid).length > 0) {
+            return [{ x, y }, { x, y: y + 1 }];
+          }
+        }
+      }
+    }
+    return null;
+  }, [swapCells, findMatches]);
 
   // Xu ly chon o
   const handleCellSelect = useCallback(() => {
-    if (isAnimating || gameOver) return;
+    if (isAnimating || gameOver || !configLoaded) return;
     
     setHint(null);
     
@@ -244,7 +306,7 @@ const Match3Game = () => {
         setSelectedCell(newPos);
       }
     }
-  }, [cursor, selectedCell, isAnimating, gameOver]);
+  }, [cursor, selectedCell, isAnimating, gameOver, configLoaded, areAdjacent]);
 
   // Thuc hien hoan doi
   const performSwap = async (pos1, pos2) => {
@@ -329,7 +391,7 @@ const Match3Game = () => {
 
   // Kiem tra game over hoac win
   useEffect(() => {
-    if (score >= TARGET_SCORE && !isAnimating) {
+    if (score >= targetScore && !isAnimating) {
       // THANG!
       setGameOver(true);
       setIsWin(true);
@@ -352,13 +414,13 @@ const Match3Game = () => {
         saveScore();
       }
     }
-  }, [moves, score, isAnimating]);
+  }, [moves, score, isAnimating, targetScore]);
 
   // Luu diem
   const saveScore = async () => {
     try {
       await gameAPI.saveGame({
-        game_id: '66666666-6666-6666-6666-666666666666', // Match-3 game ID
+        game_id: gameId || 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', // Match-3 game ID
         state: JSON.stringify({ grid, score }),
         score,
         time_elapsed: timeElapsed,
@@ -415,7 +477,7 @@ const Match3Game = () => {
   // Submit rating
   const handleSubmitRating = async ({ rating, comment }) => {
     try {
-      await gameAPI.submitReview('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', rating, comment);
+      await gameAPI.submitReview(gameId || 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', rating, comment);
       alert('✅ Thank you for your rating!');
     } catch (error) {
       console.error('Rating error:', error);
@@ -425,9 +487,9 @@ const Match3Game = () => {
 
   // Choi lai
   const restartGame = () => {
-    setGrid(createInitialGrid());
+    setGrid(createInitialGrid(gridSize, colors));
     setScore(0);
-    setMoves(30);
+    setMoves(moveLimit);
     setSelectedCell(null);
     setGameOver(false);
     setIsWin(false);
@@ -447,6 +509,20 @@ const Match3Game = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="match3-game">
+        <div className="game-header">
+          <h1>🍬 Match-3</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Tao grid de hien thi (them hieu ung cho selected, hint)
   const displayGrid = grid.map((row, y) =>
     row.map((color, x) => {
@@ -465,7 +541,7 @@ const Match3Game = () => {
         <div className="game-stats">
           <div className="stat">
             <span className="stat-label">Score</span>
-            <span className="stat-value">{score}/{TARGET_SCORE}</span>
+            <span className="stat-value">{score}/{targetScore}</span>
           </div>
           <div className="stat">
             <span className="stat-label">Moves</span>
@@ -688,7 +764,7 @@ const Match3Game = () => {
       {/* Rating Modal */}
       {showRating && (
         <GameRating
-          gameId="eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
+          gameId={gameId || "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"}
           gameName="Match-3"
           onSubmit={handleSubmitRating}
           onClose={() => setShowRating(false)}

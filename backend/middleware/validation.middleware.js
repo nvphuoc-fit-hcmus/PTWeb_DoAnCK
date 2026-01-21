@@ -106,7 +106,9 @@ const friendValidation = {
 
 const adminValidation = {
   updateUser: [
-    param("id").isUUID().withMessage("User ID không hợp lệ"),
+    param("id")
+      .matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+      .withMessage("User ID không hợp lệ"),
     body("is_active")
       .optional()
       .isBoolean()
@@ -119,7 +121,9 @@ const adminValidation = {
   ],
 
   updateGame: [
-    param("id").isUUID().withMessage("Game ID không hợp lệ"),
+    param("id")
+      .matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+      .withMessage("Game ID không hợp lệ"),
     body("is_active")
       .optional()
       .isBoolean()

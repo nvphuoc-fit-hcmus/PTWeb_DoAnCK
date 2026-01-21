@@ -5,19 +5,20 @@ import { gameAPI } from "../../../services/api";
 import { GameReview, GameInstructions } from "../../../components/game";
 import "./Caro5Game.css";
 
-const BOARD_SIZE = 15;
-const WIN_CONDITION = 5;
+const DEFAULT_BOARD_SIZE = 15;
+const DEFAULT_WIN_CONDITION = 5;
 const GAME_SLUG = "caro-5";
 
 const Caro5Game = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [board, setBoard] = useState(
-    Array(BOARD_SIZE)
-      .fill()
-      .map(() => Array(BOARD_SIZE).fill(null)),
-  );
+  // Config state - loaded from API
+  const [boardSize, setBoardSize] = useState(DEFAULT_BOARD_SIZE);
+  const [winCondition, setWinCondition] = useState(DEFAULT_WIN_CONDITION);
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  const [board, setBoard] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [winner, setWinner] = useState(null);
   const [gameOver, setGameOver] = useState(false);
@@ -29,43 +30,78 @@ const Caro5Game = () => {
   const [gameId, setGameId] = useState(null);
   const [sessionId, setSessionId] = useState(null);
 
-  const initializeBoard = useCallback(() => {
+  const initializeBoard = useCallback((size = boardSize) => {
     setBoard(
-      Array(BOARD_SIZE)
+      Array(size)
         .fill()
-        .map(() => Array(BOARD_SIZE).fill(null)),
+        .map(() => Array(size).fill(null)),
     );
     setCurrentPlayer("X");
     setWinner(null);
     setGameOver(false);
     setMoveCount(0);
     setLastMove(null);
-  }, []);
+  }, [boardSize]);
 
   useEffect(() => {
     const initGame = async () => {
-      initializeBoard();
       try {
         const res = await gameAPI.getGame(GAME_SLUG);
         if (res.data.data) {
-          const gId = res.data.data.id;
+          const gameData = res.data.data;
+          const gId = gameData.id;
           setGameId(gId);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_BOARD_SIZE;
+          const winCond = config?.winCondition || DEFAULT_WIN_CONDITION;
+          
+          setBoardSize(size);
+          setWinCondition(winCond);
+          setConfigLoaded(true);
+          
+          // Initialize board with loaded size
+          setBoard(
+            Array(size)
+              .fill()
+              .map(() => Array(size).fill(null))
+          );
+          setCurrentPlayer("X");
+          setWinner(null);
+          setGameOver(false);
+          setMoveCount(0);
+          setLastMove(null);
+          
           if (user) {
-            await createNewSession(gId);
+            await createNewSession(gId, size);
           }
         }
       } catch (error) {
         console.error("Error fetching game info:", error);
+        // Fallback to defaults
+        initializeBoard(DEFAULT_BOARD_SIZE);
+        setConfigLoaded(true);
       }
     };
 
     initGame();
-  }, [initializeBoard, user]);
+  }, [user]);
 
-  const createNewSession = async (gId) => {
+  const createNewSession = async (gId, size = boardSize) => {
     try {
       const sessionRes = await gameAPI.startGame(gId, {
-        boardSize: BOARD_SIZE,
+        boardSize: size,
       });
       const newSessionId =
         sessionRes.data.data.id || sessionRes.data.data.session_id;
@@ -88,9 +124,9 @@ const Caro5Game = () => {
       let c = col + dy;
       while (
         r >= 0 &&
-        r < BOARD_SIZE &&
+        r < boardSize &&
         c >= 0 &&
-        c < BOARD_SIZE &&
+        c < boardSize &&
         board[r][c] === player
       ) {
         count++;
@@ -101,19 +137,19 @@ const Caro5Game = () => {
       c = col - dy;
       while (
         r >= 0 &&
-        r < BOARD_SIZE &&
+        r < boardSize &&
         c >= 0 &&
-        c < BOARD_SIZE &&
+        c < boardSize &&
         board[r][c] === player
       ) {
         count++;
         r -= dx;
         c -= dy;
       }
-      if (count >= WIN_CONDITION) return true;
+      if (count >= winCondition) return true;
     }
     return false;
-  }, []);
+  }, [boardSize, winCondition]);
 
   const handleCellClick = useCallback(
     async (row, col) => {
@@ -233,6 +269,20 @@ const Caro5Game = () => {
     return className;
   };
 
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="caro5-game">
+        <div className="game-header">
+          <h1>⭕ Caro 5 hàng</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="caro5-game">
       <div className="game-header">
@@ -287,7 +337,7 @@ const Caro5Game = () => {
         <div className="center-panel">
           {winner && <div className="winner-message">🎉 {winner} thắng!</div>}
 
-          {gameOver && !winner && moveCount === BOARD_SIZE * BOARD_SIZE && (
+          {gameOver && !winner && moveCount === boardSize * boardSize && (
             <div className="draw-message">🤝 Hòa! Bàn cờ đã đầy.</div>
           )}
 

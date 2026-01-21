@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MatrixBoard, GameControls } from '../../../components/game';
 import GameRating from '../../../components/game/GameRating';
@@ -7,9 +7,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
 import './FreeDrawGame.css';
 
-// Cau hinh
-const GRID_SIZE = 20; // 20x20
-const PALETTE_COLORS = [
+// Default config
+const DEFAULT_GRID_SIZE = 20; // 20x20
+const DEFAULT_PALETTE_COLORS = [
   '#FFFFFF', // Trang
   '#FF0000', // Do
   '#FF9F43', // Cam
@@ -21,26 +21,33 @@ const PALETTE_COLORS = [
   '#FF6B9D', // Hong
   '#000000', // Den (xoa)
 ];
-
-// Tao grid trong
-const createEmptyGrid = () => {
-  const grid = [];
-  for (let y = 0; y < GRID_SIZE; y++) {
-    const row = [];
-    for (let x = 0; x < GRID_SIZE; x++) {
-      row.push('#000000');
-    }
-    grid.push(row);
-  }
-  return grid;
-};
+const GAME_SLUG = 'free-draw';
 
 const FreeDrawGame = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // Config state - loaded from API
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [paletteColors, setPaletteColors] = useState(DEFAULT_PALETTE_COLORS);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  const [gameId, setGameId] = useState(null);
+
+  // Tao grid trong
+  const createEmptyGrid = useCallback((size = gridSize) => {
+    const grid = [];
+    for (let y = 0; y < size; y++) {
+      const row = [];
+      for (let x = 0; x < size; x++) {
+        row.push('#000000');
+      }
+      grid.push(row);
+    }
+    return grid;
+  }, [gridSize]);
+  
   // State
-  const [grid, setGrid] = useState(() => createEmptyGrid());
+  const [grid, setGrid] = useState([]);
   const [currentColor, setCurrentColor] = useState('#FFFFFF');
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(1);
@@ -53,6 +60,51 @@ const FreeDrawGame = () => {
   
   // Ref de theo doi trang thai drawing
   const isDrawingRef = useRef(false);
+  const gridSizeRef = useRef(gridSize);
+
+  useEffect(() => {
+    gridSizeRef.current = gridSize;
+  }, [gridSize]);
+
+  // Load config from API
+  useEffect(() => {
+    const initGame = async () => {
+      try {
+        const res = await gameAPI.getGame(GAME_SLUG);
+        if (res.data.data) {
+          const gameData = res.data.data;
+          setGameId(gameData.id);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_GRID_SIZE;
+          const colors = config?.colors || DEFAULT_PALETTE_COLORS;
+          
+          setGridSize(size);
+          setPaletteColors(colors);
+          setGrid(createEmptyGrid(size));
+          setConfigLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching game info:", error);
+        // Fallback to defaults
+        setGrid(createEmptyGrid(DEFAULT_GRID_SIZE));
+        setConfigLoaded(true);
+      }
+    };
+    
+    initGame();
+  }, []);
 
   // Game controller
   const {
@@ -60,10 +112,10 @@ const FreeDrawGame = () => {
     pressedKeys,
     handleAction: baseHandleAction,
   } = useGameController({
-    gridWidth: GRID_SIZE,
-    gridHeight: GRID_SIZE,
+    gridWidth: gridSize,
+    gridHeight: gridSize,
     mode: 'grid', // Changed from 'linear' for 4-direction navigation
-    enabled: !showPalette,
+    enabled: !showPalette && configLoaded,
     onAction: (action) => {
       if (action === 'enter') {
         if (showPalette) {
@@ -122,6 +174,7 @@ const FreeDrawGame = () => {
 
   // Ve tai vi tri con tro
   const draw = useCallback(() => {
+    const currentGridSize = gridSizeRef.current;
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((row) => [...row]);
       
@@ -130,7 +183,7 @@ const FreeDrawGame = () => {
         for (let dx = 0; dx < brushSize; dx++) {
           const newY = cursor.y + dy;
           const newX = cursor.x + dx;
-          if (newY < GRID_SIZE && newX < GRID_SIZE) {
+          if (newY < currentGridSize && newX < currentGridSize) {
             newGrid[newY][newX] = currentColor;
           }
         }
@@ -144,16 +197,16 @@ const FreeDrawGame = () => {
   const navigatePalette = (direction) => {
     setColorPaletteIndex((prev) => {
       if (direction === 'left') {
-        return prev > 0 ? prev - 1 : PALETTE_COLORS.length - 1;
+        return prev > 0 ? prev - 1 : paletteColors.length - 1;
       } else {
-        return prev < PALETTE_COLORS.length - 1 ? prev + 1 : 0;
+        return prev < paletteColors.length - 1 ? prev + 1 : 0;
       }
     });
   };
 
   // Chon mau tu palette
   const selectColorFromPalette = () => {
-    setCurrentColor(PALETTE_COLORS[colorPaletteIndex]);
+    setCurrentColor(paletteColors[colorPaletteIndex]);
     setShowPalette(false);
   };
 
@@ -188,7 +241,7 @@ const FreeDrawGame = () => {
   // Xoa tat ca
   const clearAll = () => {
     saveToHistory();
-    setGrid(createEmptyGrid());
+    setGrid(createEmptyGrid(gridSize));
   };
 
   // Thay doi brush size
@@ -199,6 +252,7 @@ const FreeDrawGame = () => {
   // Fill mau
   const fillColor = () => {
     saveToHistory();
+    const currentGridSize = gridSizeRef.current;
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((row) => [...row]);
       const targetColor = newGrid[cursor.y][cursor.x];
@@ -214,7 +268,7 @@ const FreeDrawGame = () => {
         const key = `${x},${y}`;
         
         if (visited.has(key)) continue;
-        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) continue;
+        if (x < 0 || x >= currentGridSize || y < 0 || y >= currentGridSize) continue;
         if (newGrid[y][x] !== targetColor) continue;
         
         visited.add(key);
@@ -245,7 +299,7 @@ const FreeDrawGame = () => {
     try {
       console.log('Saving artwork...', { user, grid });
       const result = await gameAPI.saveGame({
-        game_id: '00000000-0000-0000-0000-000000000000', // Free Draw ID (phai khop voi database)
+        game_id: gameId || '00000000-0000-0000-0000-000000000000', // Free Draw ID (phai khop voi database)
         state: JSON.stringify({ grid }),
         score: 0,
         time_elapsed: 0,
@@ -295,9 +349,23 @@ const FreeDrawGame = () => {
 
   // Submit rating
   const handleSubmitRating = async ({ rating, comment }) => {
-    await gameAPI.submitReview('00000000-0000-0000-0000-000000000000', rating, comment);
+    await gameAPI.submitReview(gameId || '00000000-0000-0000-0000-000000000000', rating, comment);
     alert('✅ Cảm ơn bạn đã đánh giá!');
   };
+
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="freedraw-game">
+        <div className="game-header">
+          <h1>🎨 Free Draw</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="freedraw-game">
@@ -365,7 +433,7 @@ const FreeDrawGame = () => {
           <div className="palette-modal">
             <h3>Chon mau</h3>
             <div className="palette-colors">
-              {PALETTE_COLORS.map((color, index) => (
+              {paletteColors.map((color, index) => (
                 <div
                   key={color}
                   className={`palette-color ${index === colorPaletteIndex ? 'selected' : ''}`}
@@ -393,6 +461,7 @@ const FreeDrawGame = () => {
             showConnectors={true}
             onCellClick={(x, y) => {
               // Cho phep click de ve theo brush size
+              const currentGridSize = gridSizeRef.current;
               setGrid((prevGrid) => {
                 const newGrid = prevGrid.map((row) => [...row]);
                 // Ve theo brush size
@@ -400,7 +469,7 @@ const FreeDrawGame = () => {
                   for (let dx = 0; dx < brushSize; dx++) {
                     const newY = y + dy;
                     const newX = x + dx;
-                    if (newY < GRID_SIZE && newX < GRID_SIZE) {
+                    if (newY < currentGridSize && newX < currentGridSize) {
                       newGrid[newY][newX] = currentColor;
                     }
                   }
@@ -481,7 +550,7 @@ const FreeDrawGame = () => {
       {/* Rating Modal */}
       {showRating && (
         <GameRating
-          gameId="00000000-0000-0000-0000-000000000000"
+          gameId={gameId || "00000000-0000-0000-0000-000000000000"}
           gameName="Free Draw"
           onSubmit={handleSubmitRating}
           onClose={() => setShowRating(false)}

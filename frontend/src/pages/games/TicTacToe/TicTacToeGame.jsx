@@ -5,19 +5,20 @@ import { gameAPI } from "../../../services/api";
 import { GameReview, GameInstructions } from "../../../components/game";
 import "./TicTacToeGame.css";
 
-const BOARD_SIZE = 3;
-const WIN_CONDITION = 3;
+const DEFAULT_BOARD_SIZE = 3;
+const DEFAULT_WIN_CONDITION = 3;
 const GAME_SLUG = "tic-tac-toe";
 
 const TicTacToeGame = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [board, setBoard] = useState(
-    Array(BOARD_SIZE)
-      .fill()
-      .map(() => Array(BOARD_SIZE).fill(null)),
-  );
+  // Config state - loaded from API
+  const [boardSize, setBoardSize] = useState(DEFAULT_BOARD_SIZE);
+  const [winCondition, setWinCondition] = useState(DEFAULT_WIN_CONDITION);
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  const [board, setBoard] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [winner, setWinner] = useState(null);
   const [gameOver, setGameOver] = useState(false);
@@ -30,11 +31,11 @@ const TicTacToeGame = () => {
   const [gameId, setGameId] = useState(null);
   const [sessionId, setSessionId] = useState(null);
 
-  const initializeBoard = useCallback(() => {
+  const initializeBoard = useCallback((size = boardSize) => {
     setBoard(
-      Array(BOARD_SIZE)
+      Array(size)
         .fill()
-        .map(() => Array(BOARD_SIZE).fill(null)),
+        .map(() => Array(size).fill(null)),
     );
     setCurrentPlayer("X");
     setWinner(null);
@@ -42,18 +43,51 @@ const TicTacToeGame = () => {
     setMoveCount(0);
     setLastMove(null);
     setWinningLine(null);
-  }, []);
+  }, [boardSize]);
 
   useEffect(() => {
     const initGame = async () => {
-      initializeBoard();
       try {
         const res = await gameAPI.getGame(GAME_SLUG);
         if (res.data.data) {
-          const gId = res.data.data.id;
+          const gameData = res.data.data;
+          const gId = gameData.id;
           setGameId(gId);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_BOARD_SIZE;
+          const winCond = config?.winCondition || DEFAULT_WIN_CONDITION;
+          
+          setBoardSize(size);
+          setWinCondition(winCond);
+          setConfigLoaded(true);
+          
+          // Initialize board with loaded size
+          setBoard(
+            Array(size)
+              .fill()
+              .map(() => Array(size).fill(null))
+          );
+          setCurrentPlayer("X");
+          setWinner(null);
+          setGameOver(false);
+          setMoveCount(0);
+          setLastMove(null);
+          setWinningLine(null);
+          
           if (user) {
-            await createNewSession(gId);
+            await createNewSession(gId, size);
           }
         }
       } catch (error) {
@@ -62,20 +96,24 @@ const TicTacToeGame = () => {
           const tictactoe = listRes.data.data.find((g) => g.slug === GAME_SLUG);
           if (tictactoe) {
             setGameId(tictactoe.id);
+            initializeBoard(DEFAULT_BOARD_SIZE);
+            setConfigLoaded(true);
             if (user) await createNewSession(tictactoe.id);
           }
         } catch (e) {
           console.error("Error fetching game info:", e);
+          initializeBoard(DEFAULT_BOARD_SIZE);
+          setConfigLoaded(true);
         }
       }
     };
     initGame();
-  }, [initializeBoard, user]);
+  }, [user]);
 
-  const createNewSession = async (gId) => {
+  const createNewSession = async (gId, size = boardSize) => {
     try {
       const sessionRes = await gameAPI.startGame(gId, {
-        boardSize: BOARD_SIZE,
+        boardSize: size,
       });
       const newSessionId =
         sessionRes.data.data.id || sessionRes.data.data.session_id;
@@ -101,9 +139,9 @@ const TicTacToeGame = () => {
       let c = col + dy;
       while (
         r >= 0 &&
-        r < BOARD_SIZE &&
+        r < boardSize &&
         c >= 0 &&
-        c < BOARD_SIZE &&
+        c < boardSize &&
         board[r][c] === player
       ) {
         count++;
@@ -115,9 +153,9 @@ const TicTacToeGame = () => {
       c = col - dy;
       while (
         r >= 0 &&
-        r < BOARD_SIZE &&
+        r < boardSize &&
         c >= 0 &&
-        c < BOARD_SIZE &&
+        c < boardSize &&
         board[r][c] === player
       ) {
         count++;
@@ -126,13 +164,13 @@ const TicTacToeGame = () => {
         c -= dy;
       }
 
-      if (count >= WIN_CONDITION) {
+      if (count >= winCondition) {
         setWinningLine(line);
         return true;
       }
     }
     return false;
-  }, []);
+  }, [boardSize, winCondition]);
 
   const handleCellClick = useCallback(
     async (row, col) => {
@@ -154,13 +192,13 @@ const TicTacToeGame = () => {
             console.error("Error saving score:", error);
           }
         }
-      } else if (moveCount + 1 === BOARD_SIZE * BOARD_SIZE) {
+      } else if (moveCount + 1 === boardSize * boardSize) {
         setGameOver(true);
       } else {
         setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
       }
     },
-    [board, currentPlayer, gameOver, user, checkWinner, moveCount],
+    [board, currentPlayer, gameOver, user, checkWinner, moveCount, boardSize],
   );
 
   const handleSaveGame = async () => {
@@ -250,6 +288,20 @@ const TicTacToeGame = () => {
       className += " winning";
     return className;
   };
+
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="tictactoe-game">
+        <div className="game-header">
+          <h1>❌ Tic-Tac-Toe</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tictactoe-game">

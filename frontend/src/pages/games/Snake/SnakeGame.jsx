@@ -5,20 +5,26 @@ import { gameAPI } from "../../../services/api";
 import { GameReview, GameInstructions } from "../../../components/game";
 import "./SnakeGame.css";
 
-const GRID_SIZE = 20;
-const INITIAL_SNAKE = [{ x: 10, y: 10 }];
-const INITIAL_DIRECTION = { x: 0, y: -1 };
-const INITIAL_FOOD = { x: 15, y: 15 };
-const GAME_SPEED = 200;
+const DEFAULT_GRID_SIZE = 20;
+const DEFAULT_GAME_SPEED = 200;
 const GAME_SLUG = "snake";
 
 const SnakeGame = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [snake, setSnake] = useState(INITIAL_SNAKE);
-  const [direction, setDirection] = useState(INITIAL_DIRECTION);
-  const [food, setFood] = useState(INITIAL_FOOD);
+  // Config state - loaded from API
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [gameSpeed, setGameSpeed] = useState(DEFAULT_GAME_SPEED);
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  // Initial positions based on grid size
+  const getInitialSnake = (size) => [{ x: Math.floor(size / 2), y: Math.floor(size / 2) }];
+  const getInitialFood = (size) => ({ x: Math.floor(size * 0.75), y: Math.floor(size * 0.75) });
+
+  const [snake, setSnake] = useState([]);
+  const [direction, setDirection] = useState({ x: 0, y: -1 });
+  const [food, setFood] = useState({ x: 15, y: 15 });
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,32 +38,64 @@ const SnakeGame = () => {
 
   const gameLoopRef = useRef(null);
   const directionRef = useRef(direction);
+  const gridSizeRef = useRef(gridSize);
 
   useEffect(() => {
     directionRef.current = direction;
   }, [direction]);
 
   useEffect(() => {
+    gridSizeRef.current = gridSize;
+  }, [gridSize]);
+
+  useEffect(() => {
     const initGame = async () => {
       try {
         const res = await gameAPI.getGame(GAME_SLUG);
         if (res.data.data) {
-          const gId = res.data.data.id;
+          const gameData = res.data.data;
+          const gId = gameData.id;
           setGameId(gId);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_GRID_SIZE;
+          const speed = config?.initialSpeed || DEFAULT_GAME_SPEED;
+          
+          setGridSize(size);
+          setGameSpeed(speed);
+          setSnake(getInitialSnake(size));
+          setFood(getInitialFood(size));
+          setConfigLoaded(true);
+          
           if (user) {
-            await createNewSession(gId);
+            await createNewSession(gId, size);
           }
         }
       } catch (error) {
         console.error("Error fetching game info:", error);
+        // Fallback to defaults
+        setSnake(getInitialSnake(DEFAULT_GRID_SIZE));
+        setFood(getInitialFood(DEFAULT_GRID_SIZE));
+        setConfigLoaded(true);
       }
     };
     initGame();
   }, [user]);
 
-  const createNewSession = async (gId) => {
+  const createNewSession = async (gId, size = gridSize) => {
     try {
-      const sessionRes = await gameAPI.startGame(gId, { gridSize: GRID_SIZE });
+      const sessionRes = await gameAPI.startGame(gId, { gridSize: size });
       const newSessionId =
         sessionRes.data.data.id || sessionRes.data.data.session_id;
       setSessionId(newSessionId);
@@ -67,11 +105,12 @@ const SnakeGame = () => {
   };
 
   const generateFood = useCallback((currentSnake) => {
+    const currentGridSize = gridSizeRef.current;
     let newFood;
     do {
       newFood = {
-        x: Math.floor(Math.random() * GRID_SIZE),
-        y: Math.floor(Math.random() * GRID_SIZE),
+        x: Math.floor(Math.random() * currentGridSize),
+        y: Math.floor(Math.random() * currentGridSize),
       };
     } while (
       currentSnake.some(
@@ -90,6 +129,8 @@ const SnakeGame = () => {
   const gameLoop = useCallback(() => {
     if (!isPlaying || gameOver) return;
 
+    const currentGridSize = gridSizeRef.current;
+
     setSnake((currentSnake) => {
       const newSnake = [...currentSnake];
       const head = { ...newSnake[0] };
@@ -97,11 +138,11 @@ const SnakeGame = () => {
       head.x += directionRef.current.x;
       head.y += directionRef.current.y;
 
-      if (head.x >= GRID_SIZE) head.x = 0;
-      else if (head.x < 0) head.x = GRID_SIZE - 1;
+      if (head.x >= currentGridSize) head.x = 0;
+      else if (head.x < 0) head.x = currentGridSize - 1;
 
-      if (head.y >= GRID_SIZE) head.y = 0;
-      else if (head.y < 0) head.y = GRID_SIZE - 1;
+      if (head.y >= currentGridSize) head.y = 0;
+      else if (head.y < 0) head.y = currentGridSize - 1;
 
       if (checkCollision(head, newSnake)) {
         setGameOver(true);
@@ -125,14 +166,14 @@ const SnakeGame = () => {
 
   useEffect(() => {
     if (isPlaying && !gameOver) {
-      gameLoopRef.current = setInterval(gameLoop, GAME_SPEED);
+      gameLoopRef.current = setInterval(gameLoop, gameSpeed);
     } else {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     }
     return () => {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     };
-  }, [isPlaying, gameOver, gameLoop]);
+  }, [isPlaying, gameOver, gameLoop, gameSpeed]);
 
   const handleKeyPress = useCallback(
     (e) => {
@@ -176,11 +217,11 @@ const SnakeGame = () => {
     setHasStarted(true);
     setGameOver(false);
     setScore(0);
-    setSnake(INITIAL_SNAKE);
-    setDirection(INITIAL_DIRECTION);
-    setFood(INITIAL_FOOD);
+    setSnake(getInitialSnake(gridSize));
+    setDirection({ x: 0, y: -1 });
+    setFood(getInitialFood(gridSize));
 
-    if (user && gameId) createNewSession(gameId);
+    if (user && gameId) createNewSession(gameId, gridSize);
   };
 
   const handleResumeGame = () => {
@@ -192,8 +233,8 @@ const SnakeGame = () => {
     setHasStarted(false);
     setGameOver(false);
     setScore(0);
-    setSnake(INITIAL_SNAKE);
-    if (user && gameId) createNewSession(gameId);
+    setSnake(getInitialSnake(gridSize));
+    if (user && gameId) createNewSession(gameId, gridSize);
   };
 
   const handleSaveGame = async () => {
@@ -298,6 +339,20 @@ const SnakeGame = () => {
     );
   };
 
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="snake-game">
+        <div className="game-header">
+          <h1>🐍 Rắn săn mồi</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="snake-game">
       <div className="game-header">
@@ -390,11 +445,14 @@ const SnakeGame = () => {
             </div>
           )}
 
-          <div className="snake-board">
-            {Array(GRID_SIZE)
+          <div className="snake-board" style={{ 
+            gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+            gridTemplateRows: `repeat(${gridSize}, 1fr)`
+          }}>
+            {Array(gridSize)
               .fill()
               .map((_, y) =>
-                Array(GRID_SIZE)
+                Array(gridSize)
                   .fill()
                   .map((_, x) => renderCell(x, y)),
               )}

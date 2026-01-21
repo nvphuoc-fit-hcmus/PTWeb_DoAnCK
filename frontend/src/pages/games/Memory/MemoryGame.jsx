@@ -7,50 +7,65 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
 import './MemoryGame.css';
 
-// Cau hinh game
-const GRID_SIZE = 4; // 4x4 = 16 the = 8 cap
-const CARD_COLORS = [
+// Default config
+const DEFAULT_GRID_SIZE = 4; // 4x4 = 16 the = 8 cap
+const DEFAULT_CARD_COLORS = [
   '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3',
   '#DDA0DD', '#FF9F43', '#6C5CE7', '#00CEC9',
 ];
 const CARD_BACK = '#2d3436'; // Mau mat sau the
 const CARD_MATCHED = 'transparent'; // Mau khi da ghep xong (bien mat)
-
-// Tao mang cac cap the va xao tron
-const createCards = () => {
-  // Tao 8 cap mau
-  const cards = [...CARD_COLORS, ...CARD_COLORS];
-  
-  // Xao tron (Fisher-Yates shuffle)
-  for (let i = cards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [cards[i], cards[j]] = [cards[j], cards[i]];
-  }
-  
-  // Chuyen thanh mang 2D
-  const grid = [];
-  for (let y = 0; y < GRID_SIZE; y++) {
-    const row = [];
-    for (let x = 0; x < GRID_SIZE; x++) {
-      row.push({
-        color: cards[y * GRID_SIZE + x],
-        isFlipped: false,
-        isMatched: false,
-        isDisappearing: false, // Trang thai dang bien mat
-      });
-    }
-    grid.push(row);
-  }
-  
-  return grid;
-};
+const GAME_SLUG = 'memory';
 
 const MemoryGame = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // Config state - loaded from API
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [cardColors, setCardColors] = useState(DEFAULT_CARD_COLORS);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  const [gameId, setGameId] = useState(null);
+
+  // Tao mang cac cap the va xao tron
+  const createCards = useCallback((size = gridSize, colors = cardColors) => {
+    // Calculate number of pairs needed
+    const totalCards = size * size;
+    const numPairs = Math.floor(totalCards / 2);
+    
+    // Create pairs using available colors (repeat if needed)
+    const cards = [];
+    for (let i = 0; i < numPairs; i++) {
+      const color = colors[i % colors.length];
+      cards.push(color, color);
+    }
+    
+    // Xao tron (Fisher-Yates shuffle)
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    
+    // Chuyen thanh mang 2D
+    const grid = [];
+    for (let y = 0; y < size; y++) {
+      const row = [];
+      for (let x = 0; x < size; x++) {
+        row.push({
+          color: cards[y * size + x],
+          isFlipped: false,
+          isMatched: false,
+          isDisappearing: false, // Trang thai dang bien mat
+        });
+      }
+      grid.push(row);
+    }
+    
+    return grid;
+  }, [gridSize, cardColors]);
+  
   // Game state
-  const [cards, setCards] = useState(() => createCards());
+  const [cards, setCards] = useState([]);
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [matchedPairs, setMatchedPairs] = useState(0);
@@ -69,16 +84,56 @@ const MemoryGame = () => {
   const handleBackRef = useRef(null);
   const showHintRef = useRef(null);
 
+  // Load config from API
+  useEffect(() => {
+    const initGame = async () => {
+      try {
+        const res = await gameAPI.getGame(GAME_SLUG);
+        if (res.data.data) {
+          const gameData = res.data.data;
+          setGameId(gameData.id);
+          
+          // Load config from API
+          let config = gameData.config;
+          if (typeof config === "string") {
+            try {
+              config = JSON.parse(config);
+            } catch (e) {
+              console.error("Error parsing config:", e);
+              config = {};
+            }
+          }
+          
+          // Apply config
+          const size = config?.boardSize?.rows || config?.boardSize || DEFAULT_GRID_SIZE;
+          const colors = config?.colors || DEFAULT_CARD_COLORS;
+          
+          setGridSize(size);
+          setCardColors(colors);
+          setCards(createCards(size, colors));
+          setConfigLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching game info:", error);
+        // Fallback to defaults
+        setCards(createCards(DEFAULT_GRID_SIZE, DEFAULT_CARD_COLORS));
+        setConfigLoaded(true);
+      }
+    };
+    
+    initGame();
+  }, []);
+
   // Game controller
   const {
     cursor,
     pressedKeys,
     handleAction,
   } = useGameController({
-    gridWidth: GRID_SIZE,
-    gridHeight: GRID_SIZE,
+    gridWidth: gridSize,
+    gridHeight: gridSize,
     mode: 'grid', // Changed from 'linear' for 4-directional navigation
-    enabled: !isChecking && !gameOver,
+    enabled: !isChecking && !gameOver && configLoaded,
     onAction: (action) => {
       if (action === 'enter') {
         handleCardFlipRef.current?.();
@@ -92,22 +147,25 @@ const MemoryGame = () => {
 
   // Timer effect
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimeElapsed((prev) => prev + 1);
-    }, 1000);
+    if (configLoaded) {
+      timerRef.current = setInterval(() => {
+        setTimeElapsed((prev) => prev + 1);
+      }, 1000);
+    }
     
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, []);
+  }, [configLoaded]);
 
   // Lat the
   const handleCardFlip = useCallback(() => {
-    if (isChecking || gameOver) return;
+    if (isChecking || gameOver || !configLoaded) return;
     
-    const card = cards[cursor.y][cursor.x];
+    const card = cards[cursor.y]?.[cursor.x];
+    if (!card) return;
     
     // Bo qua neu da lat hoac da match
     if (card.isFlipped || card.isMatched) return;
@@ -195,11 +253,11 @@ const MemoryGame = () => {
         }, 1000);
       }
     }
-  }, [cards, cursor, flippedCards, isChecking, gameOver]);
+  }, [cards, cursor, flippedCards, isChecking, gameOver, configLoaded]);
 
   // Goi y - chi hien 1 cap the giong nhau
   const showHint = () => {
-    if (gameOver || isChecking) return;
+    if (gameOver || isChecking || !configLoaded) return;
     
     // Tim 1 cap the chua match
     const unmatchedCards = [];
@@ -272,7 +330,8 @@ const MemoryGame = () => {
 
   // Kiem tra thang
   useEffect(() => {
-    if (matchedPairs === CARD_COLORS.length) {
+    const totalPairs = Math.floor((gridSize * gridSize) / 2);
+    if (matchedPairs === totalPairs && matchedPairs > 0) {
       setGameOver(true);
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -287,13 +346,13 @@ const MemoryGame = () => {
         saveScore();
       }
     }
-  }, [matchedPairs]);
+  }, [matchedPairs, gridSize]);
 
   // Luu diem
   const saveScore = async () => {
     try {
       await gameAPI.saveGame({
-        game_id: '55555555-5555-5555-5555-555555555555', // Memory game ID
+        game_id: gameId || 'ffffffff-ffff-ffff-ffff-ffffffffffff', // Memory game ID
         state: JSON.stringify({ matchedPairs, moves }),
         score,
         time_elapsed: timeElapsed,
@@ -351,7 +410,7 @@ const MemoryGame = () => {
 
   // Choi lai
   const restartGame = () => {
-    setCards(createCards());
+    setCards(createCards(gridSize, cardColors));
     setScore(0);
     setMoves(0);
     setMatchedPairs(0);
@@ -366,7 +425,7 @@ const MemoryGame = () => {
 
   // Submit rating
   const handleSubmitRating = async ({ rating, comment }) => {
-    await gameAPI.submitReview('ffffffff-ffff-ffff-ffff-ffffffffffff', rating, comment);
+    await gameAPI.submitReview(gameId || 'ffffffff-ffff-ffff-ffff-ffffffffffff', rating, comment);
     alert('✅ Cảm ơn bạn đã đánh giá!');
   };
 
@@ -376,6 +435,20 @@ const MemoryGame = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Show loading while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="memory-game">
+        <div className="game-header">
+          <h1>🧠 Memory Game</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>Đang tải cấu hình game...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Tao grid de hien thi
   const displayGrid = cards.map((row) =>
@@ -404,6 +477,8 @@ const MemoryGame = () => {
     })
   );
 
+  const totalPairs = Math.floor((gridSize * gridSize) / 2);
+
   return (
     <div className="memory-game">
       <div className="game-header">
@@ -419,7 +494,7 @@ const MemoryGame = () => {
           </div>
           <div className="stat">
             <span className="stat-label">Pairs</span>
-            <span className="stat-value">{matchedPairs}/{CARD_COLORS.length}</span>
+            <span className="stat-value">{matchedPairs}/{totalPairs}</span>
           </div>
           <div className="stat">
             <span className="stat-label">Time</span>
@@ -568,7 +643,7 @@ const MemoryGame = () => {
               </div>
               <div className="final-stat">
                 <span>Pairs Matched</span>
-                <strong>{matchedPairs}/{CARD_COLORS.length}</strong>
+                <strong>{matchedPairs}/{totalPairs}</strong>
               </div>
               <div className="final-stat">
                 <span>Moves</span>
@@ -594,7 +669,7 @@ const MemoryGame = () => {
       {/* Rating Modal */}
       {showRating && (
         <GameRating
-          gameId="ffffffff-ffff-ffff-ffff-ffffffffffff"
+          gameId={gameId || "ffffffff-ffff-ffff-ffff-ffffffffffff"}
           gameName="Memory"
           onSubmit={handleSubmitRating}
           onClose={() => setShowRating(false)}
