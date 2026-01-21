@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { gameAPI } from "../../services/api";
+import Pagination from "../../components/common/Pagination";
 import "./Ranking.css";
 
 const Ranking = () => {
@@ -8,6 +9,8 @@ const Ranking = () => {
   const [filterType, setFilterType] = useState("global");
   const [rankings, setRankings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3; // Reduced for demo visibility
 
   // Fetch games on mount
   useEffect(() => {
@@ -32,6 +35,7 @@ const Ranking = () => {
       if (!selectedGame) return;
       
       setIsLoading(true);
+      setCurrentPage(1); // Reset to page 1 when filters change
       try {
         const response = await gameAPI.getRankings(selectedGame, filterType);
         setRankings(response.data.data || []);
@@ -107,39 +111,51 @@ const Ranking = () => {
             <p>Hãy chơi game để ghi danh vào bảng xếp hạng!</p>
           </div>
         ) : (
-          <table className="ranking-table">
-            <thead>
-              <tr>
-                <th>Hạng</th>
-                <th>Người chơi</th>
-                <th>Điểm cao nhất</th>
-                <th>Thời gian</th>
-                <th>Ngày đạt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rankings.map((rank, index) => (
-                <tr key={rank.id || index} className={index < 3 ? `top-${index + 1}` : ""}>
-                  <td className="rank-cell">
-                    {index === 0 && "🥇"}
-                    {index === 1 && "🥈"}
-                    {index === 2 && "🥉"}
-                    {index > 2 && rank.rank}
-                  </td>
-                  <td className="player-cell">
-                    <span className="player-name">{rank.username || rank.display_name || "Unknown"}</span>
-                  </td>
-                  <td className="score-cell">{rank.score?.toLocaleString() || 0}</td>
-                  <td className="time-cell">{formatTime(rank.time_elapsed)}</td>
-                  <td className="date-cell">
-                    {rank.achieved_at
-                      ? new Date(rank.achieved_at).toLocaleDateString("vi-VN")
-                      : "-"}
-                  </td>
+          <>
+            <table className="ranking-table">
+              <thead>
+                <tr>
+                  <th>Hạng</th>
+                  <th>Người chơi</th>
+                  <th>Điểm cao nhất</th>
+                  <th>Thời gian</th>
+                  <th>Ngày đạt</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rankings
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((rank, index) => {
+                    const actualIndex = (currentPage - 1) * itemsPerPage + index;
+                    return (
+                      <tr key={rank.id || actualIndex} className={actualIndex < 3 ? `top-${actualIndex + 1}` : ""}>
+                        <td className="rank-cell">
+                          {actualIndex === 0 && "🥇"}
+                          {actualIndex === 1 && "🥈"}
+                          {actualIndex === 2 && "🥉"}
+                          {actualIndex > 2 && rank.rank}
+                        </td>
+                        <td className="player-cell">
+                          <span className="player-name">{rank.username || rank.display_name || "Unknown"}</span>
+                        </td>
+                        <td className="score-cell">{rank.score?.toLocaleString() || 0}</td>
+                        <td className="time-cell">{formatTime(rank.time_elapsed)}</td>
+                        <td className="date-cell">
+                          {rank.achieved_at
+                            ? new Date(rank.achieved_at).toLocaleDateString("vi-VN")
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(rankings.length / itemsPerPage)}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { friendAPI, userAPI } from "../../services/api";
+import Pagination from "../../components/common/Pagination";
 import "./FriendManagement.css";
 
 const FriendManagement = () => {
@@ -14,6 +15,13 @@ const FriendManagement = () => {
   const [searchInput, setSearchInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
+
+  // Pagination states
+  const [friendsPage, setFriendsPage] = useState(1);
+  const [requestsPage, setRequestsPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
+  const [suggestionsPage, setSuggestionsPage] = useState(1);
+  const itemsPerPage = 2; // Reduced for demo visibility
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -199,29 +207,38 @@ const FriendManagement = () => {
               <p>Hãy tìm kiếm và gửi lời mời kết bạn!</p>
             </div>
           ) : (
-            <div className="friends-grid">
-              {friends.map((friend) => (
-                <div key={friend.id} className="friend-card card">
-                  <div className="friend-header">
-                    <div className="friend-avatar">
-                      {friend.display_name?.[0]?.toUpperCase() || "?"}
+            <>
+              <div className="friends-grid">
+                {friends
+                  .slice((friendsPage - 1) * itemsPerPage, friendsPage * itemsPerPage)
+                  .map((friend) => (
+                    <div key={friend.id} className="friend-card card">
+                      <div className="friend-header">
+                        <div className="friend-avatar">
+                          {friend.display_name?.[0]?.toUpperCase() || "?"}
+                        </div>
+                        <div className="friend-info">
+                          <h3>{friend.display_name}</h3>
+                          <p>@{friend.username}</p>
+                        </div>
+                      </div>
+                      {friend.bio && <p className="friend-bio">{friend.bio}</p>}
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleRemoveFriend(friend.id)}
+                        style={{ width: "100%" }}
+                      >
+                        Hủy kết bạn
+                      </button>
                     </div>
-                    <div className="friend-info">
-                      <h3>{friend.display_name}</h3>
-                      <p>@{friend.username}</p>
-                    </div>
-                  </div>
-                  {friend.bio && <p className="friend-bio">{friend.bio}</p>}
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleRemoveFriend(friend.id)}
-                    style={{ width: "100%" }}
-                  >
-                    Hủy kết bạn
-                  </button>
-                </div>
-              ))}
-            </div>
+                  ))}
+              </div>
+              <Pagination
+                currentPage={friendsPage}
+                totalPages={Math.ceil(friends.length / itemsPerPage)}
+                onPageChange={setFriendsPage}
+              />
+            </>
           )}
         </div>
       )}
@@ -239,40 +256,49 @@ const FriendManagement = () => {
               <p>Bạn không có lời mời kết bạn nào 📭</p>
             </div>
           ) : (
-            <div className="requests-list">
-              {friendRequests.map((request) => (
-                <div key={request.id} className="request-item card">
-                  <div className="request-header">
-                    <div className="friend-avatar">
-                      {request.display_name?.[0]?.toUpperCase() || "?"}
+            <>
+              <div className="requests-list">
+                {friendRequests
+                  .slice((requestsPage - 1) * itemsPerPage, requestsPage * itemsPerPage)
+                  .map((request) => (
+                    <div key={request.id} className="request-item card">
+                      <div className="request-header">
+                        <div className="friend-avatar">
+                          {request.display_name?.[0]?.toUpperCase() || "?"}
+                        </div>
+                        <div className="request-info">
+                          <h3>{request.display_name}</h3>
+                          <p>@{request.username}</p>
+                        </div>
+                      </div>
+                      {request.bio && <p className="friend-bio">{request.bio}</p>}
+                      <div className="request-actions">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() =>
+                            handleAcceptRequest(request.id, request.requester_id)
+                          }
+                        >
+                          ✓ Chấp nhận
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() =>
+                            handleRejectRequest(request.id, request.requester_id)
+                          }
+                        >
+                          ✕ Từ chối
+                        </button>
+                      </div>
                     </div>
-                    <div className="request-info">
-                      <h3>{request.display_name}</h3>
-                      <p>@{request.username}</p>
-                    </div>
-                  </div>
-                  {request.bio && <p className="friend-bio">{request.bio}</p>}
-                  <div className="request-actions">
-                    <button
-                      className="btn btn-primary"
-                      onClick={() =>
-                        handleAcceptRequest(request.id, request.requester_id)
-                      }
-                    >
-                      ✓ Chấp nhận
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() =>
-                        handleRejectRequest(request.id, request.requester_id)
-                      }
-                    >
-                      ✕ Từ chối
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ))}
+              </div>
+              <Pagination
+                currentPage={requestsPage}
+                totalPages={Math.ceil(friendRequests.length / itemsPerPage)}
+                onPageChange={setRequestsPage}
+              />
+            </>
           )}
         </div>
       )}
@@ -325,31 +351,42 @@ const FriendManagement = () => {
                 </p>
               )}
 
-              <div className="friends-grid">
-                {suggestions.map((suggestion) => (
-                  <div key={suggestion.id} className="friend-card card">
-                    <div className="friend-header">
-                      <div className="friend-avatar">
-                        {suggestion.display_name?.[0]?.toUpperCase() || "?"}
-                      </div>
-                      <div className="friend-info">
-                        <h3>{suggestion.display_name}</h3>
-                        <p>@{suggestion.username}</p>
-                      </div>
-                    </div>
-                    {suggestion.bio && (
-                      <p className="friend-bio">{suggestion.bio}</p>
-                    )}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleAddFriend(suggestion.id)}
-                      style={{ width: "100%" }}
-                    >
-                      + Kết bạn
-                    </button>
+              {suggestions.length > 0 && (
+                <>
+                  <div className="friends-grid">
+                    {suggestions
+                      .slice((suggestionsPage - 1) * itemsPerPage, suggestionsPage * itemsPerPage)
+                      .map((suggestion) => (
+                        <div key={suggestion.id} className="friend-card card">
+                          <div className="friend-header">
+                            <div className="friend-avatar">
+                              {suggestion.display_name?.[0]?.toUpperCase() || "?"}
+                            </div>
+                            <div className="friend-info">
+                              <h3>{suggestion.display_name}</h3>
+                              <p>@{suggestion.username}</p>
+                            </div>
+                          </div>
+                          {suggestion.bio && (
+                            <p className="friend-bio">{suggestion.bio}</p>
+                          )}
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handleAddFriend(suggestion.id)}
+                            style={{ width: "100%" }}
+                          >
+                            + Kết bạn
+                          </button>
+                        </div>
+                      ))}
                   </div>
-                ))}
-              </div>
+                  <Pagination
+                    currentPage={suggestionsPage}
+                    totalPages={Math.ceil(suggestions.length / itemsPerPage)}
+                    onPageChange={setSuggestionsPage}
+                  />
+                </>
+              )}
             </div>
           )}
 
@@ -371,48 +408,55 @@ const FriendManagement = () => {
                 Kết quả tìm kiếm ({searchResults.length})
               </h3>
               <div className="friends-grid">
-                {searchResults.map((result) => {
-                  const isFriend = friends.some((f) => f.id === result.id);
-                  return (
-                    <div key={result.id} className="friend-card card">
-                      <div className="friend-header">
-                        <div className="friend-avatar">
-                          {result.display_name?.[0]?.toUpperCase() || "?"}
+                {searchResults
+                  .slice((searchPage - 1) * itemsPerPage, searchPage * itemsPerPage)
+                  .map((result) => {
+                    const isFriend = friends.some((f) => f.id === result.id);
+                    return (
+                      <div key={result.id} className="friend-card card">
+                        <div className="friend-header">
+                          <div className="friend-avatar">
+                            {result.display_name?.[0]?.toUpperCase() || "?"}
+                          </div>
+                          <div className="friend-info">
+                            <h3>{result.display_name}</h3>
+                            <p>@{result.username}</p>
+                          </div>
                         </div>
-                        <div className="friend-info">
-                          <h3>{result.display_name}</h3>
-                          <p>@{result.username}</p>
-                        </div>
+                        {result.bio && <p className="friend-bio">{result.bio}</p>}
+                        {isFriend ? (
+                          <div
+                            style={{
+                              width: "100%",
+                              textAlign: "center",
+                              padding: "10px",
+                              fontSize: "1rem",
+                              fontWeight: "600",
+                              color: "#10b981",
+                              backgroundColor: "rgba(16, 185, 129, 0.1)",
+                              borderRadius: "6px",
+                            }}
+                          >
+                            ✓ Bạn bè
+                          </div>
+                        ) : (
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handleAddFriend(result.id)}
+                            style={{ width: "100%" }}
+                          >
+                            + Gửi lời mời
+                          </button>
+                        )}
                       </div>
-                      {result.bio && <p className="friend-bio">{result.bio}</p>}
-                      {isFriend ? (
-                        <div
-                          style={{
-                            width: "100%",
-                            textAlign: "center",
-                            padding: "10px",
-                            fontSize: "1rem",
-                            fontWeight: "600",
-                            color: "#10b981",
-                            backgroundColor: "rgba(16, 185, 129, 0.1)",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          ✓ Bạn bè
-                        </div>
-                      ) : (
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => handleAddFriend(result.id)}
-                          style={{ width: "100%" }}
-                        >
-                          + Gửi lời mời
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
+              <Pagination
+                currentPage={searchPage}
+                totalPages={Math.ceil(searchResults.length / itemsPerPage)}
+                onPageChange={setSearchPage}
+              />
             </div>
           )}
         </div>

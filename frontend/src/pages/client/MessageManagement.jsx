@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { messageAPI } from "../../services/api";
+import Pagination from "../../components/common/Pagination";
 import "./MessageManagement.css";
 
 const MessageManagement = () => {
@@ -10,6 +11,8 @@ const MessageManagement = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2; // Reduced for demo visibility
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -129,60 +132,69 @@ const MessageManagement = () => {
               <p>Chưa có cuộc trò chuyện nào</p>
             </div>
           ) : (
-            <div className="conversations-list">
-              {conversations.map((conv) => (
-                <div
-                  key={conv.id}
-                  className={`conversation-item ${
-                    selectedConversation?.id === conv.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedConversation(conv)}
-                  style={{
-                    padding: "12px",
-                    marginBottom: "8px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    backgroundColor:
-                      selectedConversation?.id === conv.id
-                        ? "var(--accent-color)"
-                        : "var(--bg-secondary)",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <div className="conv-header">
-                    <div className="conv-avatar">
-                      {conv.participant?.display_name?.[0]?.toUpperCase() ||
-                        "?"}
-                    </div>
-                    <div className="conv-info">
-                      <h4>{conv.participant?.display_name}</h4>
-                      <p
-                        style={{
-                          fontSize: "0.9rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        @{conv.participant?.username}
-                      </p>
-                    </div>
-                  </div>
-                  {conv.last_message && (
-                    <p
+            <>
+              <div className="conversations-list">
+                {conversations
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((conv) => (
+                    <div
+                      key={conv.id}
+                      className={`conversation-item ${
+                        selectedConversation?.id === conv.id ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedConversation(conv)}
                       style={{
-                        fontSize: "0.85rem",
-                        color: "var(--text-secondary)",
-                        marginTop: "8px",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        padding: "12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        backgroundColor:
+                          selectedConversation?.id === conv.id
+                            ? "var(--accent-color)"
+                            : "var(--bg-secondary)",
+                        transition: "all 0.3s ease",
                       }}
                     >
-                      {conv.last_message}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+                      <div className="conv-header">
+                        <div className="conv-avatar">
+                          {conv.participant?.display_name?.[0]?.toUpperCase() ||
+                            "?"}
+                        </div>
+                        <div className="conv-info">
+                          <h4>{conv.participant?.display_name}</h4>
+                          <p
+                            style={{
+                              fontSize: "0.9rem",
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            @{conv.participant?.username}
+                          </p>
+                        </div>
+                      </div>
+                      {conv.last_message && (
+                        <p
+                          style={{
+                            fontSize: "0.85rem",
+                            color: "var(--text-secondary)",
+                            marginTop: "8px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {conv.last_message}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(conversations.length / itemsPerPage)}
+                onPageChange={setCurrentPage}
+              />
+            </>
           )}
         </div>
 
