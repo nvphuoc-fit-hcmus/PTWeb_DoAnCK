@@ -28,9 +28,10 @@ const GameRating = ({ gameId, gameName, onSubmit, onClose }) => {
     }
   };
 
+
   return (
-    <div className="rating-overlay">
-      <div className="rating-modal">
+    <div className="rating-overlay" onKeyDown={(e) => e.stopPropagation()}>
+      <div className="rating-modal" onKeyDown={(e) => e.stopPropagation()}>
         <h2>Đánh giá {gameName}</h2>
         
         <div className="rating-stars">

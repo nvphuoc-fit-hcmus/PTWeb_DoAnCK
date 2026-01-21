@@ -124,7 +124,18 @@ const adminValidation = {
       .optional()
       .isBoolean()
       .withMessage("is_active phải là boolean"),
-    body("config").optional().isObject().withMessage("Config phải là object"),
+    body("config")
+      .optional()
+      .custom((value) => {
+        // Accept object, string (JSON), or undefined
+        if (value === undefined || value === null) return true;
+        if (typeof value === 'object') return true;
+        if (typeof value === 'string') {
+          try { JSON.parse(value); return true; } catch { return false; }
+        }
+        return false;
+      })
+      .withMessage("Config phải là object hoặc JSON string hợp lệ"),
     handleValidation,
   ],
 };

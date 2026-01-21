@@ -141,13 +141,19 @@ const getGames = async (req, res) => {
 const updateGame = async (req, res) => {
   try {
     const { id } = req.params;
-    const { is_active, config, default_time_limit } = req.body;
+    const { name, description, is_active, config, default_time_limit } = req.body;
+
+    console.log("Update game request:", { id, body: req.body });
 
     const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
     if (is_active !== undefined) updateData.is_active = is_active;
     if (config !== undefined) updateData.config = JSON.stringify(config);
     if (default_time_limit !== undefined)
       updateData.default_time_limit = default_time_limit;
+
+    console.log("Update data:", updateData);
 
     const game = await Game.update(id, updateData);
 
@@ -165,9 +171,10 @@ const updateGame = async (req, res) => {
     });
   } catch (error) {
     console.error("Update game error:", error);
+    console.error("Error details:", error.message, error.code, error.detail);
     res.status(500).json({
       success: false,
-      message: "Lỗi hệ thống",
+      message: `Lỗi: ${error.message || "Lỗi hệ thống"}`,
     });
   }
 };

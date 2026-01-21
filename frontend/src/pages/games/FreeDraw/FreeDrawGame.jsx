@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MatrixBoard, GameControls } from '../../../components/game';
+import GameRating from '../../../components/game/GameRating';
 import { useGameController } from '../../../hooks';
 import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
@@ -48,6 +49,7 @@ const FreeDrawGame = () => {
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showRating, setShowRating] = useState(false);
   
   // Ref de theo doi trang thai drawing
   const isDrawingRef = useRef(false);
@@ -291,6 +293,12 @@ const FreeDrawGame = () => {
     }
   };
 
+  // Submit rating
+  const handleSubmitRating = async ({ rating, comment }) => {
+    await gameAPI.submitReview('00000000-0000-0000-0000-000000000000', rating, comment);
+    alert('✅ Cảm ơn bạn đã đánh giá!');
+  };
+
   return (
     <div className="freedraw-game">
       <div className="game-header">
@@ -336,6 +344,9 @@ const FreeDrawGame = () => {
             </button>
             <button className="tool-btn guide-btn" onClick={() => setShowInstructions(true)} title="Guide">
               📖 Guide
+            </button>
+            <button className="tool-btn" onClick={() => setShowRating(true)} title="Rating" style={{ background: 'linear-gradient(135deg, #f39c12, #e74c3c)' }}>
+              ⭐ Rate
             </button>
           </div>
         </div>
@@ -465,6 +476,16 @@ const FreeDrawGame = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRating && (
+        <GameRating
+          gameId="00000000-0000-0000-0000-000000000000"
+          gameName="Free Draw"
+          onSubmit={handleSubmitRating}
+          onClose={() => setShowRating(false)}
+        />
       )}
     </div>
   );

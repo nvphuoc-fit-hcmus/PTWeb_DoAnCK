@@ -23,6 +23,9 @@ const ClientLayout = () => {
           <Link to="/games" className={isActive("/games") ? "active" : ""}>
             Chọn Game
           </Link>
+          <Link to="/ranking" className={isActive("/ranking") ? "active" : ""}>
+            🏆 Xếp Hạng
+          </Link>
           {isAuthenticated && (
             <>
               <Link

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MatrixBoard, GameControls } from '../../../components/game';
+import GameRating from '../../../components/game/GameRating';
 import { useGameController } from '../../../hooks';
 import { useAuth } from '../../../contexts/AuthContext';
 import { gameAPI } from '../../../services/api';
@@ -57,6 +58,7 @@ const MemoryGame = () => {
   const [isChecking, setIsChecking] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showRating, setShowRating] = useState(false);
   
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -362,6 +364,12 @@ const MemoryGame = () => {
     }, 1000);
   };
 
+  // Submit rating
+  const handleSubmitRating = async ({ rating, comment }) => {
+    await gameAPI.submitReview('ffffffff-ffff-ffff-ffff-ffffffffffff', rating, comment);
+    alert('✅ Cảm ơn bạn đã đánh giá!');
+  };
+
   // Format thoi gian
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -453,6 +461,18 @@ const MemoryGame = () => {
             }}
           >
             <span className="stat-label">📖 Guide</span>
+          </div>
+          {/* Rate button */}
+          <div 
+            className="stat stat-button" 
+            onClick={() => setShowRating(true)}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #f39c12 0%, #e74c3c 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">⭐ Rate</span>
           </div>
         </div>
       </div>
@@ -569,6 +589,16 @@ const MemoryGame = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRating && (
+        <GameRating
+          gameId="ffffffff-ffff-ffff-ffff-ffffffffffff"
+          gameName="Memory"
+          onSubmit={handleSubmitRating}
+          onClose={() => setShowRating(false)}
+        />
       )}
     </div>
   );

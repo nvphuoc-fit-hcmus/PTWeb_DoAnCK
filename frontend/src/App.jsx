@@ -16,6 +16,7 @@ import GameSelect from "./pages/client/GameSelect";
 import Profile from "./pages/client/Profile";
 import FriendManagement from "./pages/client/FriendManagement";
 import MessageManagement from "./pages/client/MessageManagement";
+import Ranking from "./pages/client/Ranking";
 
 // Pages - Games
 import {
@@ -32,6 +33,7 @@ import {
 import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import GameManagement from "./pages/admin/GameManagement";
+import Statistics from "./pages/admin/Statistics";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -94,6 +96,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/ranking" element={<Ranking />} />
       </Route>
 
       <Route
@@ -107,6 +110,7 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="games" element={<GameManagement />} />
+        <Route path="stats" element={<Statistics />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -512,6 +512,18 @@ const Match3Game = () => {
           >
             <span className="stat-label">📖 Guide</span>
           </div>
+          {/* Rate button */}
+          <div 
+            className="stat stat-button" 
+            onClick={() => setShowRating(true)}
+            style={{ 
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #f39c12 0%, #e74c3c 100%)',
+              border: 'none',
+            }}
+          >
+            <span className="stat-label">⭐ Rate</span>
+          </div>
         </div>
       </div>
 
